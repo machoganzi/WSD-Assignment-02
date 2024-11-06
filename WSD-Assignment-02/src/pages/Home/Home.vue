@@ -68,8 +68,8 @@
   
   <script setup lang="ts">
   import { ref, computed, onMounted } from 'vue'
-  import { tmdbApi } from '@/services/tmdb'
-  import type { Movie } from '@/types/tmdb'
+  import { tmdbApi } from '../../services/tmdb'
+  import type { Movie } from '../../types/tmdb'
   
   const popularMovies = ref<Movie[]>([])
   const nowPlayingMovies = ref<Movie[]>([])
