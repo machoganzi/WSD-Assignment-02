@@ -103,6 +103,7 @@
   </template>
   
   <script setup lang="ts">
+  import { watch } from 'vue'
   import { ref, onMounted, onUnmounted } from 'vue'
   import { tmdbApi } from '../../services/tmdb'
   import type { Movie } from '../../types/tmdb'
