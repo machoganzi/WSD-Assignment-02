@@ -26,6 +26,11 @@ export const tmdbApi = {
   getGenres: () =>
     apiClient.get<GenreResponse>('/genre/movie/list'),
 
+  // 영화 상세 정보
+  getMovieDetails: (movieId: number) =>
+    apiClient.get<Movie>(`/movie/${movieId}`),
+
+
   // 이미지 URL 생성
   getImageUrl: (path: string | null, size: string = 'original'): string | null => {
     if (!path) return null
