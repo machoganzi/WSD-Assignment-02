@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { tmdbApi } from '../../services/tmdb'
 import type { Movie } from '../../types/tmdb'
 
@@ -110,98 +110,31 @@ const getImageUrl = (path: string | null) => {
   return tmdbApi.getImageUrl(path, 'w500')
 }
 
-// 슬라이더 이동 로직 수정
+// 슬라이더 이동
 const slidePopular = (direction: 'prev' | 'next') => {
   if (!popularSlider.value) return
-  
-  const container = popularSlider.value
-  const cardWidth = 216 // 카드 너비(200px) + gap(16px)
-  const visibleWidth = container.clientWidth
-  const scrollAmount = Math.floor(visibleWidth / cardWidth) * cardWidth
-  
-  if (direction === 'next') {
-    container.scrollLeft = Math.min(
-      container.scrollLeft + scrollAmount,
-      container.scrollWidth - container.clientWidth
-    )
-  } else {
-    container.scrollLeft = Math.max(container.scrollLeft - scrollAmount, 0)
-  }
-
-  setTimeout(() => checkScroll(container, 'popular'), 100)
+  const scrollAmount = popularSlider.value.clientWidth
+  popularSlider.value.scrollBy({
+    left: direction === 'next' ? scrollAmount : -scrollAmount,
+    behavior: 'smooth'
+  })
 }
 
 const slideNowPlaying = (direction: 'prev' | 'next') => {
   if (!nowPlayingSlider.value) return
-  
-  const container = nowPlayingSlider.value
-  const cardWidth = 216 // 카드 너비(200px) + gap(16px)
-  const visibleWidth = container.clientWidth
-  const scrollAmount = Math.floor(visibleWidth / cardWidth) * cardWidth
-  
-  if (direction === 'next') {
-    container.scrollLeft = Math.min(
-      container.scrollLeft + scrollAmount,
-      container.scrollWidth - container.clientWidth
-    )
-  } else {
-    container.scrollLeft = Math.max(container.scrollLeft - scrollAmount, 0)
-  }
-
-  setTimeout(() => checkScroll(container, 'nowPlaying'), 100)
+  const scrollAmount = nowPlayingSlider.value.clientWidth
+  nowPlayingSlider.value.scrollBy({
+    left: direction === 'next' ? scrollAmount : -scrollAmount,
+    behavior: 'smooth'
+  })
 }
 
-// 스크롤 체크 로직 수정
+// 슬라이더 스크롤 체크
 const checkScroll = (element: HTMLElement, type: 'popular' | 'nowPlaying') => {
   const { scrollLeft, scrollWidth, clientWidth } = element
-  const maxScroll = scrollWidth - clientWidth
-
-  canSlidePrev.value[type] = scrollLeft > 1
-  canSlideNext.value[type] = Math.ceil(scrollLeft) < maxScroll - 1
+  canSlidePrev.value[type] = scrollLeft > 0
+  canSlideNext.value[type] = scrollLeft < scrollWidth - clientWidth - 10
 }
-
-// 윈도우 리사이즈 시 슬라이더 상태 체크
-const handleResize = () => {
-  if (popularSlider.value) {
-    checkScroll(popularSlider.value, 'popular')
-  }
-  if (nowPlayingSlider.value) {
-    checkScroll(nowPlayingSlider.value, 'nowPlaying')
-  }
-}
-
-onMounted(() => {
-  loadMovies()
-  setupScrollListeners()
-  window.addEventListener('resize', handleResize)
-
-  // 초기 스크롤 상태 체크
-  setTimeout(() => {
-    if (popularSlider.value) {
-      checkScroll(popularSlider.value, 'popular')
-    }
-    if (nowPlayingSlider.value) {
-      checkScroll(nowPlayingSlider.value, 'nowPlaying')
-    }
-  }, 100)
-})
-
-// onUnmounted 추가
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-  
-  // 스크롤 이벤트 리스너 제거
-  if (popularSlider.value) {
-    popularSlider.value.removeEventListener('scroll', () => {
-      checkScroll(popularSlider.value!, 'popular')
-    })
-  }
-  if (nowPlayingSlider.value) {
-    nowPlayingSlider.value.removeEventListener('scroll', () => {
-      checkScroll(nowPlayingSlider.value!, 'nowPlaying')
-    })
-  }
-})
 
 // 찜하기 관련
 const isWishlisted = (movieId: number) => {
@@ -250,6 +183,10 @@ const setupScrollListeners = () => {
   }
 }
 
+onMounted(() => {
+  loadMovies()
+  setupScrollListeners()
+})
 </script>
 
 <style scoped>
@@ -349,39 +286,14 @@ const setupScrollListeners = () => {
 
 .movie-list {
   display: flex;
-  gap: 1rem; /* 16px */
+  gap: 1rem;
   overflow-x: hidden;
   padding: 20px 0;
   scroll-behavior: smooth;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  margin: 0 40px; /* 슬라이더 버튼 공간 확보 */
-}
-
-.slider-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 40px;
-  height: calc(100% - 40px); /* 패딩 고려 */
-  background: rgba(0, 0, 0, 0.5);
-  border: none;
-  color: white;
-  cursor: pointer;
-  z-index: 2;
-  transition: background 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Chrome, Safari에서 스크롤바 숨기기 */
-.movie-list::-webkit-scrollbar {
-  display: none;
 }
 
 .movie-card {
-  flex: 0 0 200px; /* 고정 너비 */
+  flex: 0 0 200px;
   transition: transform 0.3s ease;
 }
 
