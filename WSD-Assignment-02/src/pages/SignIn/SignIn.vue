@@ -69,37 +69,93 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { tmdbApi } from '../../services/tmdb'
 
 const router = useRouter()
 const isSignUpMode = ref(false)
 
 const loginForm = reactive({
   username: '',
-  password: ''
+  password: '' // TMDB API 키
 })
 
 const signupForm = reactive({
   username: '',
   email: '',
-  password: ''
+  password: '' // TMDB API 키
 })
+
+// 로컬스토리지에서 사용자 정보 관리
+const getUsers = () => {
+  const users = localStorage.getItem('users')
+  return users ? JSON.parse(users) : []
+}
+
+const saveUsers = (users: any[]) => {
+  localStorage.setItem('users', JSON.stringify(users))
+}
+
+const handleSignIn = async () => {
+  try {
+    // 1. 등록된 사용자인지 확인
+    const users = getUsers()
+    const user = users.find((u: any) => 
+      u.username === loginForm.username && 
+      u.apiKey === loginForm.password
+    )
+
+    if (!user) {
+      alert('아이디 또는 비밀번호가 올바르지 않습니다.')
+      return
+    }
+
+    // 2. API 키 유효성 검증
+    await tmdbApi.getPopularMovies(1, loginForm.password)
+    
+    // 3. 로그인 처리
+    localStorage.setItem('TMDb-Key', loginForm.password)
+    localStorage.setItem('userId', loginForm.username)
+    localStorage.setItem('isAuthenticated', 'true')
+    router.push('/')
+  } catch (error) {
+    alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
+  }
+}
+
+const handleSignUp = async () => {
+  try {
+    // 1. 이미 등록된 사용자인지 확인
+    const users = getUsers()
+    if (users.some((u: any) => u.username === signupForm.username)) {
+      alert('이미 등록된 사용자입니다.')
+      return
+    }
+
+    // 2. API 키 유효성 검증
+    await tmdbApi.getPopularMovies(1, signupForm.password)
+    
+    // 3. 사용자 등록
+    users.push({
+      username: signupForm.username,
+      email: signupForm.email,
+      apiKey: signupForm.password
+    })
+    saveUsers(users)
+
+    // 4. 자동 로그인 처리
+    localStorage.setItem('TMDb-Key', signupForm.password)
+    localStorage.setItem('userId', signupForm.username)
+    localStorage.setItem('isAuthenticated', 'true')
+    
+    alert('회원가입이 완료되었습니다!')
+    router.push('/')
+  } catch (error) {
+    alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
+  }
+}
 
 const toggleMode = () => {
   isSignUpMode.value = !isSignUpMode.value
-}
-
-const handleSignIn = () => {
-  // 실제 로그인 로직 구현
-  localStorage.setItem('userId', loginForm.username)
-  localStorage.setItem('isAuthenticated', 'true')
-  router.push('/')
-}
-
-const handleSignUp = () => {
-  // 실제 회원가입 로직 구현
-  localStorage.setItem('userId', signupForm.username)
-  localStorage.setItem('isAuthenticated', 'true')
-  router.push('/')
 }
 </script>
 
@@ -111,7 +167,7 @@ const handleSignUp = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0);
   backdrop-filter: blur(10px);
   position: relative;
 }
@@ -151,12 +207,13 @@ const handleSignUp = () => {
 
 .wrapper {
   position: relative;
-  width: 750px;
-  height: 450px;
+  width: 1000px;
+  height: 600px;
   background: #fff;
   border-radius: 6px;
-  box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 50px rgba(229, 9, 20, 0.3);
   overflow: hidden;
+  z-index: 1;
 }
 
 .wrapper .form-box {
@@ -171,12 +228,12 @@ const handleSignUp = () => {
 
 .wrapper .form-box.login {
   left: 0;
-  padding: 0 60px 0 40px;
+  padding: 0 80px 0 60px;
 }
 
 .wrapper .form-box.signup {
   right: 0;
-  padding: 0 40px 0 60px;
+  padding: 0 60px 0 80px;
 }
 
 .form-box h2 {
@@ -200,6 +257,9 @@ const handleSignUp = () => {
   outline: none;
   border-bottom: 2px solid #000;
   padding: 0 25px 0 5px;
+  font-size: 16px;
+  color: #000000;  /* 하얀색 텍스트 */
+  z-index: 1;
 }
 
 .input-box label {
@@ -298,7 +358,6 @@ const handleSignUp = () => {
   opacity: 0.8;
 }
 
-/* 애니메이션 클래스 */
 .animation {
   transition: 0.7s ease;
   transition-delay: calc(0.1s * var(--data));
@@ -333,8 +392,8 @@ const handleSignUp = () => {
   position: absolute;
   top: -4px;
   right: 0;
-  width: 850px;
-  height: 600px;
+  width: 1100px;
+  height: 800px;
   background: #000;
   transform: rotate(10deg) skewY(40deg);
   transform-origin: bottom right;
@@ -350,8 +409,8 @@ const handleSignUp = () => {
   position: absolute;
   top: 100%;
   left: 250px;
-  width: 850px;
-  height: 700px;
+  width: 1100px;
+  height: 900px;
   background: #fff;
   transform: rotate(0deg) skewY(0deg);
   transform-origin: bottom left;
@@ -361,6 +420,18 @@ const handleSignUp = () => {
 .wrapper.active .bg-animate2 {
   transform: rotate(-11deg) skewY(-41deg);
   transition-delay: 1.2s;
+}
+
+@media (max-width: 1024px) {
+  .wrapper {
+    width: 90%;
+    height: 600px;
+  }
+  
+  .wrapper .form-box.login,
+  .wrapper .form-box.signup {
+    padding: 0 40px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -382,6 +453,12 @@ const handleSignUp = () => {
   .bg-animate,
   .bg-animate2 {
     display: none;
+  }
+
+  .signin-container::before {
+    width: 100%;
+    height: 100%;
+    animation: none;
   }
 }
 </style>
