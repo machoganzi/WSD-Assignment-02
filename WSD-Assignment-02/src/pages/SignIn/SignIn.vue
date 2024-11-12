@@ -116,6 +116,39 @@ const handleSignUp = () => {
   position: relative;
 }
 
+.signin-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1200px;
+  height: 1200px;
+  background: radial-gradient(
+    circle,
+    rgba(229, 9, 20, 0.2) 0%,
+    rgba(229, 9, 20, 0.1) 30%,
+    rgba(229, 9, 20, 0) 70%
+  );
+  animation: pulse 4s infinite;
+  pointer-events: none;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+}
+
 .wrapper {
   position: relative;
   width: 750px;
