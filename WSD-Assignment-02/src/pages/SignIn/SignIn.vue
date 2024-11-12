@@ -1,240 +1,352 @@
 <template>
-    <div class="signin-container">
-      <div class="form-container" :class="{ 'show-signup': isSignUp }">
-        <!-- 로그인 폼 -->
-        <div class="form signin" :class="{ 'form-hidden': isSignUp }">
-          <h2>로그인</h2>
-          <form @submit.prevent="handleSignIn">
-            <div class="input-group">
-              <input 
-                type="email" 
-                v-model="signInForm.email" 
-                required
-                placeholder="이메일"
-              >
-            </div>
-            <div class="input-group">
-              <input 
-                type="password" 
-                v-model="signInForm.password" 
-                required
-                placeholder="API Key"
-              >
-            </div>
-            <div class="remember-me">
-              <input 
-                type="checkbox" 
-                id="remember" 
-                v-model="signInForm.remember"
-              >
-              <label for="remember">로그인 상태 유지</label>
-            </div>
-            <button type="submit" class="submit-btn">로그인</button>
-          </form>
-          <p class="switch-text">
-            계정이 없으신가요? 
-            <a href="#" @click.prevent="toggleForm">회원가입</a>
-          </p>
-        </div>
-  
-        <!-- 회원가입 폼 -->
-        <div class="form signup" :class="{ 'form-hidden': !isSignUp }">
-          <h2>회원가입</h2>
-          <form @submit.prevent="handleSignUp">
-            <div class="input-group">
-              <input 
-                type="email" 
-                v-model="signUpForm.email" 
-                required
-                placeholder="이메일"
-              >
-            </div>
-            <div class="input-group">
-              <input 
-                type="password" 
-                v-model="signUpForm.password" 
-                required
-                placeholder="API Key"
-              >
-            </div>
-            <div class="input-group">
-              <input 
-                type="password" 
-                v-model="signUpForm.confirmPassword" 
-                required
-                placeholder="API Key 확인"
-              >
-            </div>
-            <div class="terms">
-              <input 
-                type="checkbox" 
-                id="terms" 
-                v-model="signUpForm.terms"
-                required
-              >
-              <label for="terms">이용약관에 동의합니다</label>
-            </div>
-            <button type="submit" class="submit-btn">회원가입</button>
-          </form>
-          <p class="switch-text">
-            이미 계정이 있으신가요? 
-            <a href="#" @click.prevent="toggleForm">로그인</a>
-          </p>
-        </div>
+  <div class="signin-container">
+    <div class="wrapper" :class="{ active: isSignUpMode }">
+      <div class="bg-animate"></div>
+      <div class="bg-animate2"></div>
+
+      <!-- 로그인 폼 -->
+      <div class="form-box login">
+        <h2 class="animation" style="--data:0;">Login</h2>
+        <form @submit.prevent="handleSignIn">
+          <div class="input-box animation" style="--data:1;">
+            <input type="text" v-model="loginForm.username" required placeholder=" ">
+            <label>Username</label>
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="input-box animation" style="--data:2;">
+            <input type="password" v-model="loginForm.password" required placeholder=" ">
+            <label>Password</label>
+            <i class="fas fa-lock"></i>
+          </div>
+          <button type="submit" class="btn animation" style="--data:3;">Login</button>
+          <div class="reg-link animation" style="--data:4;">
+            <p>Don't have an account? <a href="#" @click.prevent="toggleMode">Sign Up</a></p>
+          </div>
+        </form>
+      </div>
+
+      <!-- 회원가입 폼 -->
+      <div class="form-box signup">
+        <h2 class="animation">Sign Up</h2>
+        <form @submit.prevent="handleSignUp">
+          <div class="input-box animation" style="--data:17;">
+            <input type="text" v-model="signupForm.username" required placeholder=" ">
+            <label>Username</label>
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="input-box animation" style="--data:18;">
+            <input type="email" v-model="signupForm.email" required placeholder=" ">
+            <label>Email</label>
+            <i class="fas fa-envelope"></i>
+          </div>
+          <div class="input-box animation" style="--data:19;">
+            <input type="password" v-model="signupForm.password" required placeholder=" ">
+            <label>Password</label>
+            <i class="fas fa-lock"></i>
+          </div>
+          <button type="submit" class="btn animation" style="--data:20;">Sign Up</button>
+          <div class="reg-link animation" style="--data:21;">
+            <p>Already have an account? <a href="#" @click.prevent="toggleMode">Login</a></p>
+          </div>
+        </form>
+      </div>
+
+      <!-- 로그인 정보 텍스트 -->
+      <div class="info-text login">
+        <h2 class="animation" style="--data:0;">Welcome Back!</h2>
+        <p class="animation" style="--data:1;">Continue your journey with us</p>
+      </div>
+
+      <!-- 회원가입 정보 텍스트 -->
+      <div class="info-text signup">
+        <h2 class="animation" style="--data:22;">Hello, Friend!</h2>
+        <p class="animation" style="--data:23;">Join us for an amazing experience</p>
       </div>
     </div>
-  </template>
-  
-  <script setup lang="ts">
-  import { ref, reactive } from 'vue'
-  import { useRouter } from 'vue-router'
-  
-  const router = useRouter()
-  const isSignUp = ref(false)
-  
-  const signInForm = reactive({
-    email: '',
-    password: '',
-    remember: false
-  })
-  
-  const signUpForm = reactive({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    terms: false
-  })
-  
-  const toggleForm = () => {
-    isSignUp.value = !isSignUp.value
-  }
-  
-  const handleSignIn = async () => {
-    try {
-      // API 키를 localStorage에 저장
-      localStorage.setItem('TMDb-Key', signInForm.password)
-      localStorage.setItem('userId', signInForm.email)
-      
-      if (signInForm.remember) {
-        localStorage.setItem('remember', 'true')
-      }
-      
-      router.push('/')
-    } catch (error) {
-      alert('로그인에 실패했습니다.')
-    }
-  }
-  
-  const handleSignUp = async () => {
-    if (signUpForm.password !== signUpForm.confirmPassword) {
-      alert('API Key가 일치하지 않습니다.')
-      return
-    }
-    
-    try {
-      localStorage.setItem('TMDb-Key', signUpForm.password)
-      localStorage.setItem('userId', signUpForm.email)
-      router.push('/')
-    } catch (error) {
-      alert('회원가입에 실패했습니다.')
-    }
-  }
-  </script>
-  
-  <style scoped>
-  .signin-container {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7));
-    padding: 20px;
-  }
-  
-  .form-container {
-    background: #1a1a1a;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+const isSignUpMode = ref(false)
+
+const loginForm = reactive({
+  username: '',
+  password: ''
+})
+
+const signupForm = reactive({
+  username: '',
+  email: '',
+  password: ''
+})
+
+const toggleMode = () => {
+  isSignUpMode.value = !isSignUpMode.value
+}
+
+const handleSignIn = () => {
+  // 실제 로그인 로직 구현
+  localStorage.setItem('userId', loginForm.username)
+  localStorage.setItem('isAuthenticated', 'true')
+  router.push('/')
+}
+
+const handleSignUp = () => {
+  // 실제 회원가입 로직 구현
+  localStorage.setItem('userId', signupForm.username)
+  localStorage.setItem('isAuthenticated', 'true')
+  router.push('/')
+}
+</script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+.signin-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f4f4f4;
+}
+
+.wrapper {
+  position: relative;
+  width: 750px;
+  height: 450px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+.wrapper .form-box {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.wrapper .form-box.login {
+  left: 0;
+  padding: 0 60px 0 40px;
+}
+
+.wrapper .form-box.signup {
+  right: 0;
+  padding: 0 40px 0 60px;
+}
+
+.form-box h2 {
+  font-size: 32px;
+  color: #000;
+  text-align: center;
+}
+
+.form-box .input-box {
+  position: relative;
+  width: 100%;
+  height: 45px;
+  margin: 25px 0;
+}
+
+.input-box input {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  border-bottom: 2px solid #000;
+  padding: 0 25px 0 5px;
+}
+
+.input-box label {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  color: #555;
+  pointer-events: none;
+  transition: 0.5s;
+}
+
+.input-box input:focus ~ label,
+.input-box input:not(:placeholder-shown) ~ label {
+  top: -5px;
+  color: #000;
+}
+
+.input-box i {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  color: #555;
+  font-size: 18px;
+}
+
+.btn {
+  position: relative;
+  width: 100%;
+  height: 45px;
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.btn:hover {
+  background: #333;
+}
+
+.reg-link {
+  font-size: 14.5px;
+  color: #555;
+  text-align: center;
+  margin: 20px 0 10px;
+}
+
+.reg-link a {
+  color: #000;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.reg-link a:hover {
+  text-decoration: underline;
+}
+
+.info-text {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #fff;
+  text-align: center;
+  padding: 0 40px;
+  background: #000;
+  transition: 0.7s ease-in-out;
+}
+
+.info-text.login {
+  right: 0;
+}
+
+.info-text.signup {
+  left: 0;
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.info-text h2 {
+  font-size: 36px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.info-text p {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/* 애니메이션 클래스 */
+.animation {
+  transition: 0.7s ease;
+  transition-delay: calc(0.1s * var(--data));
+}
+
+.wrapper.active .form-box.login .animation {
+  transform: translateX(-120%);
+  opacity: 0;
+}
+
+.wrapper.active .form-box.signup .animation {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.wrapper:not(.active) .form-box.signup .animation {
+  transform: translateX(120%);
+  opacity: 0;
+}
+
+.wrapper.active .info-text.login {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.wrapper.active .info-text.signup {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.bg-animate {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  width: 850px;
+  height: 600px;
+  background: #000;
+  transform: rotate(10deg) skewY(40deg);
+  transform-origin: bottom right;
+  transition: 1.5s ease;
+}
+
+.wrapper.active .bg-animate {
+  transform: rotate(0deg) skewY(0deg);
+  transition-delay: 0.5s;
+}
+
+.bg-animate2 {
+  position: absolute;
+  top: 100%;
+  left: 250px;
+  width: 850px;
+  height: 700px;
+  background: #fff;
+  transform: rotate(0deg) skewY(0deg);
+  transform-origin: bottom left;
+  transition: 1.5s ease;
+}
+
+.wrapper.active .bg-animate2 {
+  transform: rotate(-11deg) skewY(-41deg);
+  transition-delay: 1.2s;
+}
+
+@media (max-width: 768px) {
+  .wrapper {
     width: 100%;
-    max-width: 400px;
-    position: relative;
-    transition: transform 0.3s ease;
+    height: 100vh;
+    border-radius: 0;
   }
-  
-  .form {
-    padding: 40px;
-    transition: all 0.3s ease;
+
+  .wrapper .form-box {
+    width: 100%;
+    padding: 0 20px;
   }
-  
-  .form-hidden {
+
+  .info-text {
     display: none;
   }
-  
-  h2 {
-    color: #fff;
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 1.8em;
+
+  .bg-animate,
+  .bg-animate2 {
+    display: none;
   }
-  
-  .input-group {
-    margin-bottom: 20px;
-  }
-  
-  input[type="email"],
-  input[type="password"] {
-    width: 100%;
-    padding: 12px;
-    background: #333;
-    border: none;
-    border-radius: 5px;
-    color: #fff;
-    font-size: 1em;
-  }
-  
-  input[type="email"]::placeholder,
-  input[type="password"]::placeholder {
-    color: #888;
-  }
-  
-  .remember-me,
-  .terms {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 20px;
-    color: #888;
-  }
-  
-  .submit-btn {
-    width: 100%;
-    padding: 12px;
-    background: #e50914;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: background 0.3s ease;
-  }
-  
-  .submit-btn:hover {
-    background: #f40612;
-  }
-  
-  .switch-text {
-    text-align: center;
-    margin-top: 20px;
-    color: #888;
-  }
-  
-  .switch-text a {
-    color: #e50914;
-    text-decoration: none;
-  }
-  
-  .switch-text a:hover {
-    text-decoration: underline;
-  }
-  </style>
+}
+</style>
