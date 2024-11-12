@@ -111,7 +111,9 @@ const handleSignUp = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f4f4f4;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  position: relative;
 }
 
 .wrapper {
