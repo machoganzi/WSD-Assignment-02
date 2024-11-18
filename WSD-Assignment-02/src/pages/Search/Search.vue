@@ -468,7 +468,11 @@
 
   .search-header {
     margin-bottom: 2rem;
-  }
+    max-width: 800px;  /* 검색창 최대 너비 설정 */
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+  } 
   
   .search-bar {
     margin-top: 1rem;
@@ -478,26 +482,39 @@
   
   .search-bar input {
     flex: 1;
-    padding: 0.8rem;
+    padding: 1rem 1.5rem;  /* 패딩 증가 */
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;    /* 둥글게 */
     background: #333;
     color: white;
-    font-size: 1rem;
+    font-size: 1.1rem;    /* 폰트 크기 증가 */
+    transition: all 0.3s ease;
   }
   
+  .search-bar input:focus {
+    background: #404040;
+    outline: none;
+    box-shadow: 0 0 0 2px #e50914;
+  }
+
   .filter-toggle {
-    padding: 0.8rem 1.5rem;
+    padding: 1rem 1.5rem;  /* 패딩 증가 */
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;    /* 둥글게 */
     background: #e50914;
     color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-size: 1.1rem;    /* 폰트 크기 증가 */
+    transition: background-color 0.3s ease;
   }
   
+  .filter-toggle:hover {
+    background: #f40612;
+  }
+
   .filter-panel {
     background: #1a1a1a;
     padding: 1.5rem;
@@ -591,6 +608,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 1rem;
+    position: relative;  /* 스크롤 탑 버튼의 기준점 */
   }
   
   .movie-grid {
@@ -673,8 +691,8 @@
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    width: 40px;
-    height: 40px;
+    width: 50px;         /* 크기 증가 */
+    height: 50px;        /* 크기 증가 */
     border-radius: 50%;
     background: #e50914;
     color: white;
@@ -683,11 +701,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s;
+    font-size: 1.2rem;   /* 아이콘 크기 증가 */
+    transition: all 0.3s ease;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   }
-  
+
   .scroll-top:hover {
     transform: translateY(-5px);
+    background: #f40612;
   }
   
   @media (max-width: 768px) {
