@@ -160,7 +160,8 @@
   const wishlisted = ref<number[]>(JSON.parse(localStorage.getItem('wishlisted') || '[]'))
   const recentSearches = ref<string[]>(JSON.parse(localStorage.getItem('recentSearches') || '[]'))
   const showRecentSearches = ref(false)
-  
+  const selectedLanguage = ref<string>('all') // 'all', 'ko', 'en' 중 하나
+
   // 이미지 URL 생성
   const getImageUrl = (path: string | null) => {
     return tmdbApi.getImageUrl(path, 'w500')
@@ -181,6 +182,11 @@
       }
       // 평점 필터
       if (movie.vote_average < minRating.value) {
+        return false
+      }
+          // 언어 필터
+      if (selectedLanguage.value !== 'all' && 
+          movie.original_language !== selectedLanguage.value) {
         return false
       }
       return true
@@ -235,15 +241,16 @@
   
   // 검색 함수
   const handleSearch = debounce(async () => {
-    if (!searchQuery.value.trim()) return
-    
-    // 검색어 저장
-    saveSearch(searchQuery.value.trim());
-    showRecentSearches.value = false;
-    
+    // 검색어가 있든 없든 항상 검색 실행
     currentPage.value = 1
     movies.value = []
     await searchMovies()
+  
+    // 검색어가 있을 때만 저장
+    if (searchQuery.value.trim()) {
+      saveSearch(searchQuery.value.trim())
+    }
+    showRecentSearches.value = false
   }, 500)
   
   // 입력창 포커스시 최근 검색어 표시
@@ -287,6 +294,12 @@
     }
   }
   
+  watch(searchQuery, (newVal) => {
+    if (!newVal) {
+      handleSearch()
+    }
+  })
+
   // 장르 토글
   const toggleGenre = (genreId: number) => {
     const index = selectedGenres.value.indexOf(genreId)
@@ -302,6 +315,7 @@
     selectedGenres.value = []
     minRating.value = 0
     sortBy.value = 'popularity.desc'
+    selectedLanguage.value = 'all'
   }
   
   // 필터 적용
