@@ -1,122 +1,145 @@
 <template>
-    <div class="search">
-      <div class="search-header">
-        <h1>찾아보기</h1>
-        <div class="search-bar">
+  <div class="search">
+    <div class="search-header">
+      <h1>찾아보기</h1>
+      <div class="search-bar">
+        <div class="search-input-container">
           <input 
             type="text" 
             v-model="searchQuery" 
             @input="handleSearch"
+            @focus="handleFocus"
             placeholder="영화 제목을 입력하세요..."
           >
-          <button class="filter-toggle" @click="isFilterOpen = !isFilterOpen">
-            <i class="fas fa-filter"></i>
-            필터
-          </button>
-        </div>
-      </div>
-  
-      <!-- 필터 패널 -->
-      <div class="filter-panel" :class="{ 'is-open': isFilterOpen }">
-        <div class="filter-section">
-          <h3>장르</h3>
-          <div class="genre-tags">
-            <button
-              v-for="genre in genres"
-              :key="genre.id"
-              class="genre-tag"
-              :class="{ active: selectedGenres.includes(genre.id) }"
-              @click="toggleGenre(genre.id)"
-            >
-              {{ genre.name }}
-            </button>
+          <!-- 최근 검색어 드롭다운 -->
+          <div v-if="showRecentSearches && recentSearches.length > 0" class="recent-searches">
+            <div class="recent-header">
+              <h4>최근 검색어</h4>
+              <button class="clear-all" @click="clearSearches">
+                전체 삭제
+              </button>
+            </div>
+            <ul>
+              <li v-for="(search, index) in recentSearches" :key="index">
+                <span class="search-item" @click="selectSearch(search)">
+                  <i class="fas fa-history"></i>
+                  {{ search }}
+                </span>
+                <button class="remove-search" @click.stop="removeSearch(search)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
-  
-        <div class="filter-section">
-          <h3>평점</h3>
-          <div class="rating-range">
-            <input 
-              type="range" 
-              v-model="minRating" 
-              min="0" 
-              max="10" 
-              step="0.5"
-            >
-            <span>{{ minRating }}점 이상</span>
-          </div>
-        </div>
-  
-        <div class="filter-section">
-          <h3>정렬</h3>
-          <select v-model="sortBy">
-            <option value="popularity.desc">인기도 높은순</option>
-            <option value="popularity.asc">인기도 낮은순</option>
-            <option value="vote_average.desc">평점 높은순</option>
-            <option value="vote_average.asc">평점 낮은순</option>
-            <option value="release_date.desc">최신순</option>
-            <option value="release_date.asc">오래된순</option>
-          </select>
-        </div>
-  
-        <div class="filter-actions">
-          <button class="reset-btn" @click="resetFilters">
-            <i class="fas fa-undo"></i> 초기화
-          </button>
-          <button class="apply-btn" @click="applyFilters">
-            <i class="fas fa-check"></i> 적용
-          </button>
-        </div>
+        <button class="filter-toggle" @click="isFilterOpen = !isFilterOpen">
+          <i class="fas fa-filter"></i>
+          필터
+        </button>
       </div>
-  
-      <!-- 결과 목록 -->
-      <div class="results-container" ref="resultsContainer" @scroll="handleScroll">
-        <div v-if="loading && !movies.length" class="loading-state">
-          <div class="spinner"></div>
-          <p>검색 중...</p>
-        </div>
-  
-        <div v-else-if="!movies.length && searchQuery" class="empty-state">
-          <i class="fas fa-search"></i>
-          <p>검색 결과가 없습니다</p>
-        </div>
-  
-        <div v-else class="movie-grid">
-          <div 
-            v-for="movie in filteredMovies" 
-            :key="movie.id" 
-            class="movie-card"
-            @click="toggleWishlist(movie)"
+    </div>
+
+    <!-- 필터 패널 -->
+    <div class="filter-panel" :class="{ 'is-open': isFilterOpen }">
+      <div class="filter-section">
+        <h3>장르</h3>
+        <div class="genre-tags">
+          <button
+            v-for="genre in genres"
+            :key="genre.id"
+            class="genre-tag"
+            :class="{ active: selectedGenres.includes(genre.id) }"
+            @click="toggleGenre(genre.id)"
           >
-            <div class="poster-wrapper">
-              <img :src="getImageUrl(movie.poster_path)" :alt="movie.title">
-              <div class="movie-info">
-                <h3>{{ movie.title }}</h3>
-                <p class="rating">⭐ {{ movie.vote_average.toFixed(1) }}</p>
-                <p class="date">{{ formatDate(movie.release_date) }}</p>
-                <i 
-                  class="fas heart-icon"
-                  :class="isWishlisted(movie.id) ? 'fa-heart' : 'fa-heart-o'"
-                ></i>
-              </div>
+            {{ genre.name }}
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <h3>평점</h3>
+        <div class="rating-range">
+          <input 
+            type="range" 
+            v-model="minRating" 
+            min="0" 
+            max="10" 
+            step="0.5"
+          >
+          <span>{{ minRating }}점 이상</span>
+        </div>
+      </div>
+
+      <div class="filter-section">
+        <h3>정렬</h3>
+        <select v-model="sortBy">
+          <option value="popularity.desc">인기도 높은순</option>
+          <option value="popularity.asc">인기도 낮은순</option>
+          <option value="vote_average.desc">평점 높은순</option>
+          <option value="vote_average.asc">평점 낮은순</option>
+          <option value="release_date.desc">최신순</option>
+          <option value="release_date.asc">오래된순</option>
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button class="reset-btn" @click="resetFilters">
+          <i class="fas fa-undo"></i> 초기화
+        </button>
+        <button class="apply-btn" @click="applyFilters">
+          <i class="fas fa-check"></i> 적용
+        </button>
+      </div>
+    </div>
+
+    <!-- 결과 목록 -->
+    <div class="results-container" ref="resultsContainer" @scroll="handleScroll">
+      <div v-if="loading && !movies.length" class="loading-state">
+        <div class="spinner"></div>
+        <p>검색 중...</p>
+      </div>
+
+      <div v-else-if="!movies.length && searchQuery" class="empty-state">
+        <i class="fas fa-search"></i>
+        <p>검색 결과가 없습니다</p>
+      </div>
+
+      <div v-else class="movie-grid">
+        <div 
+          v-for="movie in filteredMovies" 
+          :key="movie.id" 
+          class="movie-card"
+          @click="toggleWishlist(movie)"
+        >
+          <div class="poster-wrapper">
+            <img :src="getImageUrl(movie.poster_path)" :alt="movie.title">
+            <div class="movie-info">
+              <h3>{{ movie.title }}</h3>
+              <p class="rating">⭐ {{ movie.vote_average.toFixed(1) }}</p>
+              <p class="date">{{ formatDate(movie.release_date) }}</p>
+              <i 
+                class="fas heart-icon"
+                :class="isWishlisted(movie.id) ? 'fa-heart' : 'fa-heart-o'"
+              ></i>
             </div>
           </div>
         </div>
-  
-        <div v-if="loading && movies.length" class="loading-more">
-          <div class="spinner"></div>
-          <p>더 불러오는 중...</p>
-        </div>
       </div>
-  
-      <button v-show="showScrollTop" class="scroll-top" @click="scrollToTop">
-        <i class="fas fa-arrow-up"></i>
-      </button>
+
+      <div v-if="loading && movies.length" class="loading-more">
+        <div class="spinner"></div>
+        <p>더 불러오는 중...</p>
+      </div>
     </div>
+
+    <button v-show="showScrollTop" class="scroll-top" @click="scrollToTop">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+  </div>
   </template>
   
   <script setup lang="ts">
-  import { ref, computed, onMounted, watch } from 'vue'
+  import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
   import { tmdbApi } from '../../services/tmdb'
   import type { Movie, Genre } from '../../types/tmdb'
   import { debounce } from 'lodash'
@@ -135,6 +158,8 @@
   const showScrollTop = ref(false)
   const resultsContainer = ref<HTMLElement | null>(null)
   const wishlisted = ref<number[]>(JSON.parse(localStorage.getItem('wishlisted') || '[]'))
+  const recentSearches = ref<string[]>(JSON.parse(localStorage.getItem('recentSearches') || '[]'))
+  const showRecentSearches = ref(false)
   
   // 이미지 URL 생성
   const getImageUrl = (path: string | null) => {
@@ -162,14 +187,79 @@
     })
   })
   
+  // 검색어 저장
+  const saveSearch = (query: string) => {
+    if (!query.trim()) return;
+    
+    const searches = recentSearches.value;
+    // 중복 검색어 제거
+    const index = searches.indexOf(query);
+    if (index > -1) {
+      searches.splice(index, 1);
+    }
+    
+    // 최근 검색어를 앞에 추가
+    searches.unshift(query);
+    
+    // 최대 10개까지만 저장
+    if (searches.length > 10) {
+      searches.pop();
+    }
+    
+    // localStorage에 저장
+    localStorage.setItem('recentSearches', JSON.stringify(searches));
+  }
+  
+  // 검색어 삭제
+  const removeSearch = (query: string) => {
+    const searches = recentSearches.value;
+    const index = searches.indexOf(query);
+    if (index > -1) {
+      searches.splice(index, 1);
+      localStorage.setItem('recentSearches', JSON.stringify(searches));
+    }
+  }
+  
+  // 검색어 전체 삭제
+  const clearSearches = () => {
+    recentSearches.value = [];
+    localStorage.setItem('recentSearches', JSON.stringify([]));
+  }
+  
+  // 검색어 클릭시 검색 실행
+  const selectSearch = (query: string) => {
+    searchQuery.value = query;
+    showRecentSearches.value = false;
+    handleSearch();
+  }
+  
   // 검색 함수
   const handleSearch = debounce(async () => {
     if (!searchQuery.value.trim()) return
+    
+    // 검색어 저장
+    saveSearch(searchQuery.value.trim());
+    showRecentSearches.value = false;
     
     currentPage.value = 1
     movies.value = []
     await searchMovies()
   }, 500)
+  
+  // 입력창 포커스시 최근 검색어 표시
+  const handleFocus = () => {
+    if (recentSearches.value.length > 0) {
+      showRecentSearches.value = true;
+    }
+  }
+  
+  // 입력창 외부 클릭시 최근 검색어 숨기기
+  const handleClickOutside = (event: MouseEvent) => {
+    const searchBar = document.querySelector('.search-bar');
+    if (searchBar && !searchBar.contains(event.target as Node)) {
+      showRecentSearches.value = false;
+    }
+  }
   
   // 영화 검색 API 호출
   const searchMovies = async () => {
@@ -261,8 +351,14 @@
     }
   }
   
+  // 컴포넌트 마운트/언마운트
   onMounted(() => {
-    loadGenres()
+    loadGenres();
+    document.addEventListener('click', handleClickOutside);
+  })
+  
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside);
   })
   
   // sortBy 변경 감지
@@ -282,6 +378,85 @@
     flex-direction: column;
   }
   
+    /* 검색 입력창 컨테이너 */
+  .search-input-container {
+    position: relative;
+    flex: 1;
+  }
+
+  /* 최근 검색어 드롭다운 */
+  .recent-searches {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #2a2a2a;
+    border-radius: 4px;
+    margin-top: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+  }
+
+  .recent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #333;
+  }
+
+  .clear-all {
+    background: none;
+    border: none;
+    color: #e50914;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+
+  .recent-searches ul {
+    list-style: none;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .recent-searches li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  .recent-searches li:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .search-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+  }
+
+  .remove-search {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .recent-searches li:hover .remove-search {
+    opacity: 1;
+  }
+
+  .remove-search:hover {
+    color: #e50914;
+  }
+
   .search-header {
     margin-bottom: 2rem;
   }

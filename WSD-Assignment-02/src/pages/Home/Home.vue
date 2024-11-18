@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { tmdbApi } from '../../services/tmdb'
 import type { Movie } from '../../types/tmdb'
 
@@ -110,31 +110,70 @@ const getImageUrl = (path: string | null) => {
   return tmdbApi.getImageUrl(path, 'w500')
 }
 
-// 슬라이더 이동
+// 마우스 휠 이벤트 핸들러
+const handleWheel = (event: WheelEvent, type: 'popular' | 'nowPlaying') => {
+  event.preventDefault();
+  const slider = type === 'popular' ? popularSlider.value : nowPlayingSlider.value;
+  if (!slider) return;
+
+  const scrollAmount = event.deltaY > 0 ? 200 : -200;
+  slider.scrollBy({
+    left: scrollAmount,
+    behavior: 'smooth'
+  });
+
+  setTimeout(() => {
+    checkScroll(slider, type);
+  }, 100);
+};
+
+// 슬라이더 이동 로직
 const slidePopular = (direction: 'prev' | 'next') => {
-  if (!popularSlider.value) return
-  const scrollAmount = popularSlider.value.clientWidth
+  if (!popularSlider.value) return;
+  
+  const cardWidth = 216; // 카드 너비(200px) + gap(16px)
+  const containerWidth = popularSlider.value.clientWidth;
+  const scrollAmount = Math.floor(containerWidth / cardWidth) * cardWidth;
+
   popularSlider.value.scrollBy({
     left: direction === 'next' ? scrollAmount : -scrollAmount,
     behavior: 'smooth'
-  })
-}
+  });
+
+  setTimeout(() => {
+    if (popularSlider.value) {
+      checkScroll(popularSlider.value, 'popular');
+    }
+  }, 100);
+};
 
 const slideNowPlaying = (direction: 'prev' | 'next') => {
-  if (!nowPlayingSlider.value) return
-  const scrollAmount = nowPlayingSlider.value.clientWidth
+  if (!nowPlayingSlider.value) return;
+  
+  const cardWidth = 216; // 카드 너비(200px) + gap(16px)
+  const containerWidth = nowPlayingSlider.value.clientWidth;
+  const scrollAmount = Math.floor(containerWidth / cardWidth) * cardWidth;
+
   nowPlayingSlider.value.scrollBy({
     left: direction === 'next' ? scrollAmount : -scrollAmount,
     behavior: 'smooth'
-  })
-}
+  });
 
-// 슬라이더 스크롤 체크
+  setTimeout(() => {
+    if (nowPlayingSlider.value) {
+      checkScroll(nowPlayingSlider.value, 'nowPlaying');
+    }
+  }, 100);
+};
+
+// 스크롤 상태 체크
 const checkScroll = (element: HTMLElement, type: 'popular' | 'nowPlaying') => {
-  const { scrollLeft, scrollWidth, clientWidth } = element
-  canSlidePrev.value[type] = scrollLeft > 0
-  canSlideNext.value[type] = scrollLeft < scrollWidth - clientWidth - 10
-}
+  const { scrollLeft, scrollWidth, clientWidth } = element;
+  const maxScroll = scrollWidth - clientWidth;
+
+  canSlidePrev.value[type] = scrollLeft > 1;
+  canSlideNext.value[type] = Math.ceil(scrollLeft) < maxScroll - 1;
+};
 
 // 찜하기 관련
 const isWishlisted = (movieId: number) => {
@@ -154,14 +193,11 @@ const toggleWishlist = (movie: Movie) => {
 // 데이터 로드
 const loadMovies = async () => {
   try {
-    // 인기 영화 로드
     const popularResponse = await tmdbApi.getPopularMovies()
     popularMovies.value = popularResponse.data.results
     
-    // 메인 배너용 영화 선택
     featuredMovie.value = popularMovies.value[0]
 
-    // 현재 상영작 로드
     const nowPlayingResponse = await tmdbApi.getNowPlaying()
     nowPlayingMovies.value = nowPlayingResponse.data.results
   } catch (error) {
@@ -169,24 +205,37 @@ const loadMovies = async () => {
   }
 }
 
-// 슬라이더 스크롤 이벤트 리스너
+// 이벤트 리스너 설정
 const setupScrollListeners = () => {
   if (popularSlider.value) {
+    popularSlider.value.addEventListener('wheel', (e) => handleWheel(e, 'popular'));
     popularSlider.value.addEventListener('scroll', () => {
-      checkScroll(popularSlider.value!, 'popular')
-    })
+      checkScroll(popularSlider.value!, 'popular');
+    });
+  }
+  
+  if (nowPlayingSlider.value) {
+    nowPlayingSlider.value.addEventListener('wheel', (e) => handleWheel(e, 'nowPlaying'));
+    nowPlayingSlider.value.addEventListener('scroll', () => {
+      checkScroll(nowPlayingSlider.value!, 'nowPlaying');
+    });
+  }
+};
+
+// 컴포넌트 마운트/언마운트
+onMounted(() => {
+  loadMovies();
+  setupScrollListeners();
+});
+
+onUnmounted(() => {
+  if (popularSlider.value) {
+    popularSlider.value.removeEventListener('wheel', (e) => handleWheel(e, 'popular'));
   }
   if (nowPlayingSlider.value) {
-    nowPlayingSlider.value.addEventListener('scroll', () => {
-      checkScroll(nowPlayingSlider.value!, 'nowPlaying')
-    })
+    nowPlayingSlider.value.removeEventListener('wheel', (e) => handleWheel(e, 'nowPlaying'));
   }
-}
-
-onMounted(() => {
-  loadMovies()
-  setupScrollListeners()
-})
+});
 </script>
 
 <style scoped>
@@ -288,8 +337,14 @@ onMounted(() => {
   display: flex;
   gap: 1rem;
   overflow-x: hidden;
-  padding: 20px 0;
+  padding: 20px 40px;
   scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.movie-list::-webkit-scrollbar {
+  display: none;
 }
 
 .movie-card {
@@ -339,13 +394,16 @@ onMounted(() => {
   top: 50%;
   transform: translateY(-50%);
   width: 40px;
-  height: 100%;
+  height: calc(100% - 40px);
   background: rgba(0, 0, 0, 0.5);
   border: none;
   color: white;
   cursor: pointer;
   z-index: 2;
-  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
 }
 
 .slider-btn:hover {
