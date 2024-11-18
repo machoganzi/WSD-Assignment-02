@@ -265,7 +265,15 @@
   const searchMovies = async () => {
     loading.value = true
     try {
-      const response = await tmdbApi.searchMovies(searchQuery.value, currentPage.value)
+      let response;
+      if (searchQuery.value.trim()) {
+        // 검색어가 있을 때는 검색 결과를 보여줌
+        response = await tmdbApi.searchMovies(searchQuery.value, currentPage.value)
+      } else {
+        // 검색어가 없을 때는 인기 영화를 보여줌
+        response = await tmdbApi.getPopularMovies(currentPage.value)
+      }
+
       if (currentPage.value === 1) {
         movies.value = response.data.results
       } else {
@@ -354,6 +362,7 @@
   // 컴포넌트 마운트/언마운트
   onMounted(() => {
     loadGenres();
+    searchMovies(); // 초기 영화 목록 로드
     document.addEventListener('click', handleClickOutside);
   })
   
