@@ -38,7 +38,7 @@
         </button>
       </div>
     </div>
-
+ 
     <!-- 필터 패널 -->
     <div class="filter-panel" :class="{ 'is-open': isFilterOpen }">
       <div class="filter-section">
@@ -55,7 +55,34 @@
           </button>
         </div>
       </div>
-
+ 
+      <div class="filter-section">
+        <h3>언어</h3>
+        <div class="language-options">
+          <button
+            class="language-btn"
+            :class="{ active: selectedLanguage === 'all' }"
+            @click="selectedLanguage = 'all'"
+          >
+            전체
+          </button>
+          <button
+            class="language-btn"
+            :class="{ active: selectedLanguage === 'ko' }"
+            @click="selectedLanguage = 'ko'"
+          >
+            한국어
+          </button>
+          <button
+            class="language-btn"
+            :class="{ active: selectedLanguage === 'en' }"
+            @click="selectedLanguage = 'en'"
+          >
+            영어
+          </button>
+        </div>
+      </div>
+ 
       <div class="filter-section">
         <h3>평점</h3>
         <div class="rating-range">
@@ -69,7 +96,7 @@
           <span>{{ minRating }}점 이상</span>
         </div>
       </div>
-
+ 
       <div class="filter-section">
         <h3>정렬</h3>
         <select v-model="sortBy">
@@ -81,7 +108,7 @@
           <option value="release_date.asc">오래된순</option>
         </select>
       </div>
-
+ 
       <div class="filter-actions">
         <button class="reset-btn" @click="resetFilters">
           <i class="fas fa-undo"></i> 초기화
@@ -91,19 +118,19 @@
         </button>
       </div>
     </div>
-
+ 
     <!-- 결과 목록 -->
     <div class="results-container" ref="resultsContainer" @scroll="handleScroll">
       <div v-if="loading && !movies.length" class="loading-state">
         <div class="spinner"></div>
         <p>검색 중...</p>
       </div>
-
+ 
       <div v-else-if="!movies.length && searchQuery" class="empty-state">
         <i class="fas fa-search"></i>
         <p>검색 결과가 없습니다</p>
       </div>
-
+ 
       <div v-else class="movie-grid">
         <div 
           v-for="movie in filteredMovies" 
@@ -125,18 +152,18 @@
           </div>
         </div>
       </div>
-
+ 
       <div v-if="loading && movies.length" class="loading-more">
         <div class="spinner"></div>
         <p>더 불러오는 중...</p>
       </div>
     </div>
-
+ 
     <button v-show="showScrollTop" class="scroll-top" @click="scrollToTop">
       <i class="fas fa-arrow-up"></i>
     </button>
   </div>
-  </template>
+ </template>
   
   <script setup lang="ts">
   import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
@@ -594,6 +621,41 @@
     display: flex;
     gap: 1rem;
     margin-top: 1.5rem;
+  }
+
+  .language-options {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .language-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #333;
+    border-radius: 20px;
+    background: none;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+  }
+
+  .language-btn:hover {
+    background: rgba(229, 9, 20, 0.2);
+    border-color: #e50914;
+  }
+
+  .language-btn.active {
+    background: #e50914;
+    border-color: #e50914;
+  } 
+
+  /* 모바일 대응 */
+  @media (max-width: 768px) {
+    .language-btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+    }
   }
   
   .reset-btn, .apply-btn {
