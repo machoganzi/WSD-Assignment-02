@@ -1,0 +1,26 @@
+import { defineStore } from 'pinia';
+import { useRouter } from 'vue-router';
+
+interface AuthState {
+  isAuthenticated: boolean;
+  userId: string | null;
+}
+
+export const useAuthStore = defineStore('auth', {
+  state: (): AuthState => ({
+    isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
+    userId: localStorage.getItem('userId')
+  }),
+
+  actions: {
+    logout() {
+      const router = useRouter();
+      localStorage.removeItem('TMDb-Key');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('isAuthenticated');
+      this.isAuthenticated = false;
+      this.userId = null;
+      router.push('/signin');
+    }
+  }
+});
