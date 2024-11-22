@@ -241,8 +241,26 @@ onUnmounted(() => {
 <style scoped>
 .home {
   min-height: 100vh;
+  background: linear-gradient(135deg, #12141d, #1f2937);
+  position: relative;
+  overflow: hidden;
 }
 
+/* 배경 효과 */
+.home::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(76, 29, 149, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 30%, rgba(219, 39, 119, 0.15) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* 히어로 섹션 */
 .hero {
   height: 80vh;
   background-size: cover;
@@ -319,54 +337,64 @@ onUnmounted(() => {
   background: rgba(109, 109, 110, 0.4);
 }
 
+/* 영화 섹션 */
 .movie-section {
-  padding: 20px 4%;
+  padding: 60px 8%;
   position: relative;
 }
 
 .movie-section h2 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
 .movie-slider {
   position: relative;
+  margin: 0 -30px;
+  perspective: 1000px;
 }
 
 .movie-list {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
+  padding: 30px;
   overflow-x: hidden;
-  padding: 20px 40px;
   scroll-behavior: smooth;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.movie-list::-webkit-scrollbar {
-  display: none;
 }
 
 .movie-card {
-  flex: 0 0 200px;
-  transition: transform 0.3s ease;
+  flex: 0 0 260px;
+  transform-style: preserve-3d;
+  transition: all 0.6s cubic-bezier(0.21, 0.67, 0.58, 1);
 }
 
 .movie-card:hover {
-  transform: scale(1.05);
-  cursor: pointer;
+  transform: translateY(-10px) scale(1.05) rotateY(5deg);
 }
 
 .poster-wrapper {
   position: relative;
-  border-radius: 4px;
+  border-radius: 16px;
   overflow: hidden;
+  box-shadow: 
+    0 10px 30px -5px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 }
 
 .poster-wrapper img {
   width: 100%;
-  height: 300px;
+  height: 380px;
   object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.movie-card:hover img {
+  transform: scale(1.1);
 }
 
 .movie-info {
@@ -374,10 +402,15 @@ onUnmounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 1rem;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  padding: 2rem 1.5rem 1.5rem;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9),
+    rgba(0, 0, 0, 0.7) 50%,
+    transparent
+  );
   transform: translateY(100%);
-  transition: transform 0.3s;
+  transition: transform 0.5s cubic-bezier(0.21, 0.67, 0.58, 1);
 }
 
 .poster-wrapper:hover .movie-info {
@@ -385,17 +418,25 @@ onUnmounted(() => {
 }
 
 .movie-info h3 {
-  font-size: 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.movie-info p {
+  color: rgba(255, 255, 255, 0.7);
   margin-bottom: 0.5rem;
 }
 
+/* 슬라이더 버튼 */
 .slider-btn {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: calc(100% - 40px);
-  background: rgba(0, 0, 0, 0.5);
+  width: 60px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.03);
   border: none;
   color: white;
   cursor: pointer;
@@ -403,28 +444,75 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(8px);
   transition: all 0.3s ease;
 }
 
 .slider-btn:hover {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  width: 70px;
 }
 
 .slider-btn.prev {
   left: 0;
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .slider-btn.next {
   right: 0;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.slider-btn i {
+  font-size: 1.8rem;
+  transition: transform 0.3s ease;
+}
+
+.slider-btn:hover i {
+  transform: scale(1.2);
+}
+
+/* 찜하기 아이콘 */
+.heart-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  color: #ff3b7c;
+  filter: drop-shadow(0 0 8px rgba(255, 59, 124, 0.4));
+  transition: all 0.3s ease;
+}
+
+.heart-icon:hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 12px rgba(255, 59, 124, 0.6));
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
+  .hero h1 {
+    font-size: 3.5rem;
+  }
+
+  .movie-card {
+    flex: 0 0 220px;
+  }
+
+  .poster-wrapper img {
+    height: 330px;
+  }
 }
 
 @media (max-width: 768px) {
   .hero {
-    height: 60vh;
+    height: 80vh;
+    padding: 0 5%;
   }
 
   .hero h1 {
-    font-size: 2rem;
+    font-size: 2.8rem;
   }
 
   .overview {
@@ -432,16 +520,27 @@ onUnmounted(() => {
   }
 
   .btn {
-    padding: 0.6rem 1.5rem;
+    padding: 0.8rem 1.8rem;
     font-size: 1rem;
   }
 
+  .movie-section {
+    padding: 40px 5%;
+  }
+
   .movie-card {
-    flex: 0 0 150px;
+    flex: 0 0 180px;
   }
 
   .poster-wrapper img {
-    height: 225px;
+    height: 270px;
   }
+}
+
+/* 애니메이션 */
+@keyframes glowPulse {
+  0% { filter: drop-shadow(0 0 8px rgba(255, 59, 124, 0.4)); }
+  50% { filter: drop-shadow(0 0 12px rgba(255, 59, 124, 0.6)); }
+  100% { filter: drop-shadow(0 0 8px rgba(255, 59, 124, 0.4)); }
 }
 </style>
