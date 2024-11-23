@@ -248,9 +248,10 @@ onUnmounted(() => {
   min-height: 100vh;
   background: var(--background-light);
   position: relative;
-  overflow: hidden;
-  width: 100%;
-  max-width: 100%;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  overflow-x: hidden;
   transition: background-color 0.3s ease;
 }
 
