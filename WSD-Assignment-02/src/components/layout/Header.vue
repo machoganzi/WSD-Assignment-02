@@ -499,27 +499,27 @@ onUnmounted(() => {
 
 .dropdown-enter-from,
 .dropdown-leave-to {
- opacity: 0;
- transform: translateY(-10px);
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 /* Media Queries */
 @media (max-width: 768px) {
- .nav-links {
-   position: fixed;
-   top: 70px;
-   left: 0;
-   right: 0;
-   background: white;
-   flex-direction: column;
-   gap: 0;
-   margin: 0;
-   padding: 1rem 0;
-   transform: translateY(-100%);
-   opacity: 0;
-   visibility: hidden;
-   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
- }
+  .nav-links {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: white;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 1rem 0;
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
  .dark-mode .nav-links {
    background: #1f1f1f;

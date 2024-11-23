@@ -13,7 +13,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useThemeStore } from '@/stores/themeStore';
 import Header from './components/layout/Header.vue';
@@ -22,6 +22,10 @@ import Footer from './components/layout/Footer.vue';
 const route = useRoute();
 const themeStore = useThemeStore();
 const isSignInPage = computed(() => route.path === '/signin');
+
+onMounted(() => {
+  themeStore.initTheme();
+});
 </script>
 
 <style>
@@ -33,22 +37,12 @@ const isSignInPage = computed(() => route.path === '/signin');
   --surface-dark: #1a1a1a;
   --text-light: #333333;
   --text-dark: #ffffff;
+  --background-dark-rgb: 20, 20, 20;
   
   /* Brand Colors */
   --primary-color: #e50914;
   --primary-hover: #ff0f1a;
   --secondary-color: #ff4b2b;
-  
-  /* UI Colors */
-  --success-color: #2ecc71;
-  --warning-color: #f1c40f;
-  --error-color: #e74c3c;
-  --info-color: #3498db;
-  
-  /* Animation Timing */
-  --transition-fast: 150ms ease;
-  --transition-normal: 300ms ease;
-  --transition-slow: 500ms ease;
   
   /* Spacing */
   --spacing-xs: 4px;
@@ -60,7 +54,6 @@ const isSignInPage = computed(() => route.path === '/signin');
   /* Layout */
   --header-height: 70px;
   --header-height-mobile: 60px;
-  --max-width: 1200px;
   --border-radius: 8px;
 }
 
@@ -83,10 +76,16 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
-  background-color: var(--background-dark);
-  color: var(--text-dark);
   overflow-x: hidden;
   min-height: 100vh;
+  background-color: var(--background-light);
+  color: var(--text-light);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark-mode {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
 }
 
 /* App Layout */
@@ -95,10 +94,14 @@ body {
   display: flex;
   flex-direction: column;
   width: 100%;
+  background-color: var(--background-light);
+  color: var(--text-light);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.app.dark-mode {
   background-color: var(--background-dark);
   color: var(--text-dark);
-  transition: background-color var(--transition-normal),
-              color var(--transition-normal);
 }
 
 /* Main Content */
@@ -106,7 +109,7 @@ main {
   flex: 1;
   margin-top: var(--header-height);
   width: 100%;
-  transition: margin-top var(--transition-normal);
+  transition: margin-top 0.3s ease;
   position: relative;
   z-index: 1;
 }
@@ -118,8 +121,7 @@ main.no-margin {
 /* Page Transitions */
 .page-enter-active,
 .page-leave-active {
-  transition: opacity var(--transition-normal),
-              transform var(--transition-normal);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .page-enter-from {
@@ -146,7 +148,7 @@ main.no-margin {
 ::-webkit-scrollbar-thumb {
   background: var(--primary-color);
   border-radius: var(--border-radius);
-  transition: background var(--transition-fast);
+  transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -165,19 +167,7 @@ main.no-margin {
   outline-offset: 2px;
 }
 
-/* Utility Classes */
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
-}
-
-/* Responsive Design */
+/* Media Queries */
 @media (max-width: 768px) {
   :root {
     --header-height: var(--header-height-mobile);
@@ -198,24 +188,11 @@ main.no-margin {
   *,
   ::before,
   ::after {
-    animation-delay: -1ms !important;
-    animation-duration: 1ms !important;
+    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     background-attachment: initial !important;
     scroll-behavior: auto !important;
     transition-duration: 0s !important;
-    transition-delay: 0s !important;
-  }
-}
-
-/* Print Styles */
-@media print {
-  .app {
-    background: white;
-  }
-
-  main {
-    margin: 0;
   }
 }
 </style>
