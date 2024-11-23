@@ -434,7 +434,7 @@ onUnmounted(() => {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(229, 5, 5, 0.05);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
