@@ -1,5 +1,5 @@
 <template>
-    <div class="popular">
+    <div :class="['popular', { 'dark-mode': themeStore.isDarkMode }]">
       <div class="header">
         <h1>대세 콘텐츠</h1>
         <div class="view-toggle">
@@ -106,7 +106,10 @@
   import { watch } from 'vue'
   import { ref, onMounted, onUnmounted } from 'vue'
   import { tmdbApi } from '../../services/tmdb'
+  import { useThemeStore } from '@/stores/themeStore'
   import type { Movie } from '../../types/tmdb'
+
+const themeStore = useThemeStore()
   
   const viewMode = ref<'table' | 'grid'>('table')
   const movies = ref<Movie[]>([])
@@ -217,6 +220,14 @@
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
+    background: var(--background-light);
+    color: var(--text-light);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .dark-mode.popular {
+    background: var(--background-dark);
+    color: var(--text-dark);
   }
   
   .header {
@@ -224,6 +235,15 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
+  }
+  
+  .header h1 {
+    color: var(--text-light);
+    transition: color 0.3s ease;
+  }
+  
+  .dark-mode .header h1 {
+    color: var(--text-dark);
   }
   
   .view-toggle {
@@ -235,21 +255,32 @@
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
-    background: #333;
-    color: white;
+    background: var(--surface-light);
+    color: var(--text-light);
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
+  }
+  
+  .dark-mode .view-toggle button {
+    background: var(--surface-dark);
+    color: var(--text-dark);
   }
   
   .view-toggle button.active {
-    background: #e50914;
+    background: var(--primary-color);
+    color: white;
   }
   
-  /* Table View 스타일 */
+  /* Table View Styles */
   .table-view {
-    background: #1a1a1a;
+    background: var(--surface-light);
     border-radius: 8px;
     overflow: hidden;
+    transition: background-color 0.3s ease;
+  }
+  
+  .dark-mode .table-view {
+    background: var(--surface-dark);
   }
   
   table {
@@ -260,12 +291,24 @@
   th, td {
     padding: 1rem;
     text-align: left;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-light);
+    transition: all 0.3s ease;
+  }
+  
+  .dark-mode th,
+  .dark-mode td {
+    border-bottom-color: var(--border-dark);
+    color: var(--text-dark);
   }
   
   th {
-    background: #2a2a2a;
+    background: var(--surface-light);
     font-weight: bold;
+  }
+  
+  .dark-mode th {
+    background: var(--surface-dark);
   }
   
   .poster-cell img {
@@ -278,31 +321,44 @@
   .wishlist-btn {
     background: none;
     border: none;
-    color: #777;
+    color: var(--text-light);
+    opacity: 0.7;
     cursor: pointer;
     font-size: 1.2rem;
+    transition: all 0.3s ease;
+  }
+  
+  .dark-mode .wishlist-btn {
+    color: var(--text-dark);
   }
   
   .wishlist-btn.active {
-    color: #e50914;
+    color: var(--primary-color);
+    opacity: 1;
   }
   
-  /* Grid View 스타일 */
+  /* Grid View Styles */
   .grid-view {
     height: calc(100vh - 200px);
     overflow-y: auto;
+    padding: 1rem;
+    background: var(--background-light);
+    transition: background-color 0.3s ease;
+  }
+  
+  .dark-mode .grid-view {
+    background: var(--background-dark);
   }
   
   .movie-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 2rem;
-    padding: 1rem;
   }
   
   .movie-card {
     position: relative;
-    transition: transform 0.3s;
+    transition: transform 0.3s ease;
     cursor: pointer;
   }
   
@@ -314,6 +370,12 @@
     position: relative;
     border-radius: 8px;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .dark-mode .poster-wrapper {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
   
   .poster-wrapper img {
@@ -330,11 +392,14 @@
     padding: 1rem;
     background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
     transform: translateY(100%);
-    transition: transform 0.3s;
+    transition: transform 0.3s ease;
   }
   
-  .poster-wrapper:hover .movie-info {
-    transform: translateY(0);
+  .movie-info h3,
+  .movie-info p {
+    color: white;
+    margin: 0;
+    margin-bottom: 0.5rem;
   }
   
   .heart-icon {
@@ -342,27 +407,39 @@
     top: 1rem;
     right: 1rem;
     font-size: 1.5rem;
-    color: #e50914;
+    color: var(--primary-color);
     filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+    transition: all 0.3s ease;
   }
   
-  /* 페이지네이션 */
+  /* Pagination */
   .pagination {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 1rem;
     padding: 1rem;
-    background: #2a2a2a;
+    background: var(--surface-light);
+    transition: background-color 0.3s ease;
+  }
+  
+  .dark-mode .pagination {
+    background: var(--surface-dark);
   }
   
   .pagination button {
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
-    background: #333;
-    color: white;
+    background: var(--surface-light);
+    color: var(--text-light);
     cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .dark-mode .pagination button {
+    background: var(--surface-dark);
+    color: var(--text-dark);
   }
   
   .pagination button:disabled {
@@ -370,30 +447,36 @@
     cursor: not-allowed;
   }
   
-  /* 로딩 스피너 */
+  /* Loading Spinner */
   .loading {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 2rem;
     gap: 1rem;
+    color: var(--text-light);
+    transition: color 0.3s ease;
+  }
+  
+  .dark-mode .loading {
+    color: var(--text-dark);
   }
   
   .spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #e50914;
+    border: 4px solid var(--surface-light);
+    border-top: 4px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
   
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  .dark-mode .spinner {
+    border-color: var(--surface-dark);
+    border-top-color: var(--primary-color);
   }
   
-  /* 스크롤 탑 버튼 */
+  /* Scroll Top Button */
   .scroll-top {
     position: fixed;
     bottom: 2rem;
@@ -401,18 +484,24 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: #e50914;
+    background: var(--primary-color);
     color: white;
     border: none;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s;
+    transition: all 0.3s ease;
   }
   
   .scroll-top:hover {
     transform: translateY(-5px);
+    background: var(--primary-hover);
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
   
   @media (max-width: 768px) {

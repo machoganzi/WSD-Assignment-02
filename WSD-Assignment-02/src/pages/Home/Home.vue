@@ -249,8 +249,9 @@ onUnmounted(() => {
   background: var(--background-light);
   position: relative;
   overflow: hidden;
-  width: 100%; /* 추가 */
-  max-width: 100%; /* 추가 */
+  width: 100%;
+  max-width: 100%;
+  transition: background-color 0.3s ease;
 }
 
 .dark-mode .home {
@@ -305,8 +306,8 @@ onUnmounted(() => {
   position: relative;
   display: flex;
   align-items: center;
-  padding: 0; /* 패딩 제거 */
-  width: 100%; /* 추가 */
+  padding: 0;
+  width: 100%;
 }
 
 .hero-shadow {
@@ -326,17 +327,19 @@ onUnmounted(() => {
 .hero-content {
   max-width: 600px;
   z-index: 1;
-  padding: 0 4%; /* 패딩을 여기로 이동 */
+  padding: 0 4%;
 }
-
 
 .hero h1 {
   font-size: 3rem;
   margin-bottom: 1rem;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  background: linear-gradient(45deg, #fff, #e6e6e6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-dark);
+  transition: color 0.3s ease;
+}
+
+.dark-mode .hero h1 {
+  color: var(--text-dark);
 }
 
 .overview {
@@ -345,6 +348,11 @@ onUnmounted(() => {
   opacity: 0.9;
   line-height: 1.6;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  color: var(--text-dark);
+  transition: color 0.3s ease;
+}
+
+.dark-mode .overview {
   color: #f1f1f1;
 }
 
@@ -353,6 +361,7 @@ onUnmounted(() => {
   gap: 1rem;
 }
 
+/* Buttons */
 .btn {
   padding: 0.8rem 2rem;
   border: none;
@@ -368,6 +377,11 @@ onUnmounted(() => {
 
 .play-btn {
   background: #fff;
+  color: var(--text-light);
+  transition: all 0.3s ease;
+}
+
+.dark-mode .play-btn {
   color: var(--background-dark);
 }
 
@@ -378,8 +392,13 @@ onUnmounted(() => {
 
 .more-btn {
   background: rgba(109, 109, 110, 0.7);
-  color: #fff;
+  color: var(--text-dark);
   backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.dark-mode .more-btn {
+  color: var(--text-dark);
 }
 
 .more-btn:hover {
@@ -389,25 +408,28 @@ onUnmounted(() => {
 
 /* Movie Section */
 .movie-section {
-  padding: 60px 0; /* 좌우 패딩 제거 */
+  padding: 60px 0;
   position: relative;
-  width: 100%; /* 추가 */
+  width: 100%;
 }
 
 .movie-section h2 {
   font-size: 2rem;
   font-weight: 600;
   margin-bottom: 2rem;
+  color: var(--text-light);
+  transition: color 0.3s ease;
+  padding: 0 4%;
+}
+
+.dark-mode .movie-section h2 {
   color: var(--text-dark);
-  background: linear-gradient(45deg, #fff, #e6e6e6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .movie-slider {
   position: relative;
-  width: 100%; /* 추가 */
-  padding: 0 4%; /* 패딩 추가 */
+  width: 100%;
+  padding: 0 4%;
 }
 
 .movie-list {
@@ -416,7 +438,7 @@ onUnmounted(() => {
   overflow-x: hidden;
   scroll-behavior: smooth;
   padding: 1rem 0;
-  width: 100%; /* 추가 */
+  width: 100%;
 }
 
 .movie-card {
@@ -434,9 +456,13 @@ onUnmounted(() => {
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  background: rgba(229, 5, 5, 0.05);
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+}
+
+.dark-mode .poster-wrapper {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .poster-wrapper img {
@@ -474,13 +500,23 @@ onUnmounted(() => {
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #fff;
+  color: var(--text-dark);
+  transition: color 0.3s ease;
+}
+
+.dark-mode .movie-info h3 {
+  color: var(--text-dark);
 }
 
 .movie-info p {
-  color: #ffd700;
+  color: var(--text-dark);
   margin-bottom: 0.5rem;
   font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.dark-mode .movie-info p {
+  color: #ffd700;
 }
 
 .heart-icon {
@@ -507,7 +543,7 @@ onUnmounted(() => {
   height: 100px;
   border: none;
   background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  color: var(--text-light);
   cursor: pointer;
   z-index: 2;
   display: flex;
@@ -517,9 +553,18 @@ onUnmounted(() => {
   transition: all 0.3s ease;
 }
 
+.dark-mode .slider-btn {
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-dark);
+}
+
 .slider-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   width: 60px;
+}
+
+.dark-mode .slider-btn:hover {
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .slider-btn.prev {
@@ -567,6 +612,9 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .hero {
     height: 70vh;
+  }
+
+  .hero-content {
     padding: 0 5%;
   }
 
@@ -584,7 +632,15 @@ onUnmounted(() => {
   }
 
   .movie-section {
-    padding: 40px 5%;
+    padding: 40px 0;
+  }
+
+  .movie-section h2 {
+    padding: 0 5%;
+  }
+
+  .movie-slider {
+    padding: 0 5%;
   }
 
   .movie-card {
