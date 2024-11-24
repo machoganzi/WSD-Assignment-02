@@ -109,7 +109,7 @@
   import { useThemeStore } from '@/stores/themeStore'
   import type { Movie } from '../../types/tmdb'
 
-const themeStore = useThemeStore()
+  const themeStore = useThemeStore()
   
   const viewMode = ref<'table' | 'grid'>('table')
   const movies = ref<Movie[]>([])
@@ -218,10 +218,10 @@ const themeStore = useThemeStore()
   <style scoped>
   .popular {
     min-height: 100vh;
-    padding: 20px;
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    padding: 20px max(4%, calc((100vw - 1920px) / 2));
     background: var(--background-light);
     color: var(--text-light);
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -275,6 +275,7 @@ const themeStore = useThemeStore()
   
   /* Table View Styles */
   .table-view {
+    width: 100%;
     background: var(--surface-light);
     border-radius: 8px;
     overflow: hidden;
@@ -343,6 +344,7 @@ const themeStore = useThemeStore()
   .grid-view {
     height: calc(100vh - 200px);
     overflow-y: auto;
+    width: 100%;
     padding: 1rem;
     background: var(--background-light);
     transition: background-color 0.3s ease;
@@ -356,6 +358,7 @@ const themeStore = useThemeStore()
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 2rem;
+    width: 100%;
   }
   
   .movie-card {
