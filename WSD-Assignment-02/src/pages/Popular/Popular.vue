@@ -140,7 +140,25 @@ const showScrollTop = ref(false)
 const wishlisted = ref<number[]>(JSON.parse(localStorage.getItem('wishlisted') || '[]'))
 
 // 그리드 뷰의 페이지당 아이템 수 (3행 x 4열 = 12)
-const PAGE_SIZE = 12
+// 화면 크기에 따른 동적 PAGE_SIZE 계산
+const calculatePageSize = () => {
+  // 3행 고정에 화면 너비에 따른 열 수 계산
+  const containerWidth = window.innerWidth - 40; // 여백 고려
+  const cardWidth = 200; // 최소 카드 너비
+  const gap = 20; // 갭 크기
+  const columns = Math.floor(containerWidth / (cardWidth + gap));
+  return columns * 3; // 3행 * n열
+}
+
+const pageSize = ref(calculatePageSize());
+
+// 윈도우 리사이즈 이벤트 핸들러에 추가
+window.addEventListener('resize', () => {
+  pageSize.value = calculatePageSize();
+  if (viewMode.value === 'grid') {
+    loadMovies(1);
+  }
+});
 
 // 페이지네이션된 영화 목록
 const paginatedMovies = computed(() => {
@@ -199,7 +217,7 @@ const prevPage = () => {
 // 테이블 뷰 무한 스크롤
 const handleScroll = async () => {
   if (viewMode.value !== 'table' || loading.value) return
- 
+  
   const container = tableContainer.value
   if (!container) return
 
