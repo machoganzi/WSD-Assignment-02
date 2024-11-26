@@ -21,7 +21,7 @@
 
     <!-- 카드 뷰 (그리드 형태 + 페이지네이션) -->
     <div v-if="viewMode === 'grid'" class="grid-view">
-      <div class="movie-grid">
+      <div class="movie-grid" ref="movieGrid">
         <div 
           v-for="movie in paginatedMovies" 
           :key="movie.id" 
@@ -110,16 +110,15 @@
         <div class="spinner"></div>
         <p>로딩 중...</p>
       </div>
-
-      <!-- 맨 위로 가기 버튼 -->
-      <button 
-        v-show="showScrollTop"
-        class="scroll-top" 
-        @click="scrollToTop"
-      >
-        <i class="fas fa-arrow-up"></i>
-      </button>
     </div>
+
+    <!-- 맨 위로 가기 버튼 -->
+    <button 
+      :class="['scroll-top', { visible: showScrollTop }]"
+      @click="scrollToTop"
+    >
+      <i class="fas fa-arrow-up"></i>
+    </button>
   </div>
 </template>
 
@@ -136,62 +135,76 @@ const currentPage = ref(1)
 const totalPages = ref(1)
 const loading = ref(false)
 const tableContainer = ref<HTMLElement | null>(null)
+const movieGrid = ref<HTMLElement | null>(null)
 const showScrollTop = ref(false)
 const wishlisted = ref<number[]>(JSON.parse(localStorage.getItem('wishlisted') || '[]'))
 
-// 그리드 뷰의 페이지당 아이템 수 (3행 x 4열 = 12)
-// 화면 크기에 따른 동적 PAGE_SIZE 계산
+// 화면 크기에 따른 동적 페이지 사이즈 계산
 const calculatePageSize = () => {
-  // 3행 고정에 화면 너비에 따른 열 수 계산
-  const containerWidth = window.innerWidth - 40; // 여백 고려
-  const cardWidth = 200; // 최소 카드 너비
-  const gap = 20; // 갭 크기
-  const columns = Math.floor(containerWidth / (cardWidth + gap));
-  return columns * 3; // 3행 * n열
+ const gridElement = movieGrid.value;
+ if (!gridElement) return 30;
+
+ const gridWidth = gridElement.offsetWidth;
+ const gridGap = 32; // gap: 2rem = 32px
+ const minCardWidth = 130;
+
+ // 한 행에 들어갈 수 있는 최대 카드 수 계산
+ const columnsPerRow = Math.floor((gridWidth + gridGap) / (minCardWidth + gridGap));
+ 
+ // 3행으로 고정하고 열 수에 따라 총 카드 수 계산
+ return columnsPerRow * 3;
 }
 
-const pageSize = ref(calculatePageSize());
-
-// 윈도우 리사이즈 이벤트 핸들러에 추가
-window.addEventListener('resize', () => {
-  pageSize.value = calculatePageSize();
-  if (viewMode.value === 'grid') {
-    loadMovies(1);
-  }
-});
+const pageSize = ref(calculatePageSize())
 
 // 페이지네이션된 영화 목록
 const paginatedMovies = computed(() => {
-  if (viewMode.value === 'grid') {
-   const start = (currentPage.value - 1) * PAGE_SIZE
-    return movies.value.slice(start, start + PAGE_SIZE)
-  }
-  return movies.value
+ if (viewMode.value === 'grid') {
+   const start = (currentPage.value - 1) * pageSize.value;
+   return movies.value.slice(start, start + pageSize.value);
+ }
+ return movies.value;
 })
 
 // 이미지 URL 생성
 const getImageUrl = (path: string | null) => {
-  return tmdbApi.getImageUrl(path, 'w500')
+ return tmdbApi.getImageUrl(path, 'w500')
 }
 
 // 날짜 포맷
 const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('ko-KR')
+ return new Date(dateStr).toLocaleDateString('ko-KR')
 }
 
 // 영화 데이터 로드
 const loadMovies = async (page: number, append = false) => {
   if (loading.value) return
-    loading.value = true
+  
+  loading.value = true
   try {
-    const response = await tmdbApi.getPopularMovies(page)
     if (append) {
-     // 테이블 뷰의 무한 스크롤
+      // 테이블 뷰의 무한 스크롤
+      const response = await tmdbApi.getPopularMovies(page)
       movies.value = [...movies.value, ...response.data.results]
+      totalPages.value = response.data.total_pages
     } else {
-     // 그리드 뷰의 페이지네이션
-      movies.value = response.data.results
-      totalPages.value = Math.ceil(response.data.total_results / PAGE_SIZE)
+      // 그리드 뷰의 페이지네이션 - 200개 데이터 로드
+      const totalMovies = 200
+      const moviesPerPage = 20 // TMDB API가 페이지당 20개 영화를 반환
+      const pagesToFetch = Math.ceil(totalMovies / moviesPerPage)
+      
+      // 여러 페이지의 데이터를 동시에 요청
+      const promises = Array.from({ length: pagesToFetch }, (_, i) => 
+        tmdbApi.getPopularMovies(i + 1)
+      )
+      
+      const responses = await Promise.all(promises)
+      
+      // 모든 응답의 결과를 하나의 배열로 합침
+      movies.value = responses.flatMap(response => response.data.results)
+        .slice(0, totalMovies) // 정확히 200개만 유지
+      
+      totalPages.value = Math.ceil(totalMovies / pageSize.value)
     }
     currentPage.value = page
   } catch (error) {
@@ -201,30 +214,30 @@ const loadMovies = async (page: number, append = false) => {
   }
 }
 
-// 그리드 뷰 페이지네이션
+// 페이지네이션 (그리드 뷰)
 const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    loadMovies(currentPage.value + 1)
-  }
+ if (currentPage.value < totalPages.value) {
+   loadMovies(currentPage.value + 1)
+ }
 }
 
 const prevPage = () => {
-  if (currentPage.value > 1) {
-    loadMovies(currentPage.value - 1)
-  }
+ if (currentPage.value > 1) {
+   loadMovies(currentPage.value - 1)
+ }
 }
 
-// 테이블 뷰 무한 스크롤
+// 무한 스크롤 (테이블 뷰)
 const handleScroll = async () => {
   if (viewMode.value !== 'table' || loading.value) return
   
   const container = tableContainer.value
   if (!container) return
 
- // 스크롤 위치에 따른 Top 버튼 표시/숨김
+  // 스크롤 위치에 따라 버튼 표시/숨김
   showScrollTop.value = container.scrollTop > 200
 
- // 무한 스크롤 트리거
+  // 무한 스크롤 로직
   const { scrollTop, clientHeight, scrollHeight } = container
   if (scrollTop + clientHeight >= scrollHeight - 100) {
     if (currentPage.value < totalPages.value) {
@@ -233,64 +246,94 @@ const handleScroll = async () => {
   }
 }
 
+// 스크롤 탑 버튼 표시/숨김
+const updateScrollTopVisibility = (container: HTMLElement) => {
+ showScrollTop.value = container.scrollTop > 200
+}
+
 // 맨 위로 스크롤
 const scrollToTop = () => {
-  if (tableContainer.value) {
-    tableContainer.value.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    })
-  }
+ const container = viewMode.value === 'table' ? tableContainer.value : window
+ if (container) {
+   container.scrollTo({
+     top: 0,
+     behavior: 'smooth'
+   })
+ }
 }
 
 // 위시리스트 관련
 const isWishlisted = (movieId: number) => {
-  return wishlisted.value.includes(movieId)
+ return wishlisted.value.includes(movieId)
 }
 
 const toggleWishlist = (movie: Movie) => {
-  const index = wishlisted.value.indexOf(movie.id)
-  if (index === -1) {
-    wishlisted.value.push(movie.id)
-  } else {
-    wishlisted.value.splice(index, 1)
-  }
-  localStorage.setItem('wishlisted', JSON.stringify(wishlisted.value))
+ const index = wishlisted.value.indexOf(movie.id)
+ if (index === -1) {
+   wishlisted.value.push(movie.id)
+ } else {
+   wishlisted.value.splice(index, 1)
+ }
+ localStorage.setItem('wishlisted', JSON.stringify(wishlisted.value))
 }
 
-// 스크롤 이벤트 처리
-const setupScrollListener = () => {
-  if (tableContainer.value) {
-    tableContainer.value.addEventListener('scroll', handleScroll)
-  }
-}
-
-const cleanupScrollListener = () => {
-  if (tableContainer.value) {
-    tableContainer.value.removeEventListener('scroll', handleScroll)
-  }
+// 윈도우 리사이즈 이벤트 핸들러
+const handleResize = () => {
+ const newPageSize = calculatePageSize()
+ if (pageSize.value !== newPageSize) {
+   pageSize.value = newPageSize
+   if (viewMode.value === 'grid') {
+     loadMovies(1)
+   }
+ }
 }
 
 // 라이프사이클 훅
 onMounted(() => {
-  loadMovies(1)
-  setupScrollListener()
+ loadMovies(1)
+ window.addEventListener('resize', handleResize)
+ if (viewMode.value === 'table') {
+   tableContainer.value?.addEventListener('scroll', handleScroll)
+ }
 })
 
 onUnmounted(() => {
-  cleanupScrollListener()
+ window.removeEventListener('resize', handleResize)
+ if (tableContainer.value) {
+   tableContainer.value.removeEventListener('scroll', handleScroll)
+ }
 })
 
 // 뷰 모드 변경 시 데이터 초기화
 watch(viewMode, () => {
-  movies.value = []
-  currentPage.value = 1
-  showScrollTop.value = false
-  loadMovies(1)
+ movies.value = []
+ currentPage.value = 1
+ showScrollTop.value = false
+ pageSize.value = calculatePageSize()
+ loadMovies(1)
 })
 </script>
 
 <style scoped>
+/* Base Variables */
+:root {
+ /* 라이트 모드 */
+  --background-light: #ffffff;
+  --text-light: #333333;
+  --text-secondary-light: #666666;
+  --page-text-light: #555555;
+  --surface-light: rgba(255, 255, 255, 0.1);
+  --border-light: rgba(0, 0, 0, 0.1);
+  
+ /* 다크 모드 */
+  --background-dark: #141414;
+  --text-dark: #ffffff;
+  --text-secondary-dark: #cccccc;
+  --page-text-dark: #e0e0e0;
+  --surface-dark: rgba(255, 255, 255, 0.1);
+  --border-dark: rgba(255, 255, 255, 0.2);
+}
+
 /* Base Styles */
 .popular {
   min-height: 100vh;
@@ -306,8 +349,6 @@ watch(viewMode, () => {
 .dark-mode.popular {
   background: var(--background-dark);
   color: var(--text-dark);
-  --text-dark: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
 }
 
 /* Header Styles */
@@ -365,32 +406,37 @@ watch(viewMode, () => {
 
 /* Grid View Styles */
 .grid-view {
+  height: calc(100vh - 160px);
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 160px);
+  gap: 2rem;
+  padding: 2rem;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-radius: 16px;
-  overflow: hidden;
-  gap: 2rem;
 }
 
 .movie-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 2rem;
-  padding: 2rem;
-  height: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  grid-auto-rows: 160px; /* 카드 높이로 고정 */
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1rem;
   overflow: hidden;
+  height: calc(100% - 80px);
 }
 
 /* Movie Card Styles */
 .movie-card {
+  width: 130px;
+  height: 160px;
   position: relative;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeIn 0.5s ease forwards;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .movie-card:hover {
@@ -400,9 +446,8 @@ watch(viewMode, () => {
 
 .poster-wrapper {
   position: relative;
-  aspect-ratio: 2/3;
   width: 100%;
-  border-radius: 16px;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -418,30 +463,62 @@ watch(viewMode, () => {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 2rem 1.5rem;
+  padding: 0.8rem;
   background: linear-gradient(
     to top,
     rgba(0, 0, 0, 0.9) 0%,
     rgba(0, 0, 0, 0.7) 50%,
     transparent 100%
   );
-  opacity: 0;
-  transition: all 0.4s ease;
 }
 
 .movie-card:hover .movie-info {
   opacity: 1;
 }
 
+.movie-info h3 {
+  font-size: 0.9rem;
+  line-height: 1.2;
+  margin-bottom: 0.3rem;
+}
+
+.movie-details {
+  font-size: 0.8rem;
+}
+
+
+.movie-info .movie-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
 /* Table View Styles */
 .table-view {
   height: calc(100vh - 160px);
   overflow-y: auto;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-radius: 16px;
   scrollbar-width: thin;
   scrollbar-color: var(--primary-color) rgba(255, 255, 255, 0.1);
+}
+
+.table-view::-webkit-scrollbar {
+  width: 8px;
+}
+
+.table-view::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.table-view::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
 }
 
 table {
@@ -455,7 +532,7 @@ th {
   position: sticky;
   top: 0;
   background: rgba(0, 0, 0, 0.2);
-  padding: 1.2rem 1.5rem;
+  padding: 0.8rem 1rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -465,24 +542,37 @@ th {
 }
 
 td {
-  padding: 1rem 1.5rem;
+  padding: 0.8rem 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
 }
 
 /* Column widths */
-.poster-col { width: 100px; }
-.date-col { width: 120px; }
-.rating-col { width: 100px; }
-.wishlist-col { width: 100px; }
+.poster-col { width: 60px; min-width: 60px; }
+.title-col { width: auto; min-width: 200px; }
+.date-col { width: 100px; min-width: 100px; }
+.rating-col { width: 80px; min-width: 80px; }
+.wishlist-col { width: 60px; min-width: 60px; }
 
-/* Buttons & Icons */
+.poster-cell img {
+  width: 40px;
+  height: 60px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+tr:hover .poster-cell img {
+  transform: scale(1.1);
+}
+
+/* Heart Icons & Wishlist Buttons */
 .heart-icon-btn,
 .wishlist-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -492,16 +582,53 @@ td {
   backdrop-filter: blur(4px);
 }
 
+/* Light mode heart icons */
+.heart-icon-btn i,
+.wishlist-btn i {
+  color: #666666;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+}
+
+.heart-icon-btn.active i,
+.wishlist-btn.active i {
+  color: #ff3b7c;
+}
+
+/* Dark mode heart icons */
+.dark-mode .heart-icon-btn i,
+.dark-mode .wishlist-btn i {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dark-mode .heart-icon-btn.active i,
+.dark-mode .wishlist-btn.active i {
+  color: #ff3b7c;
+}
+
 .heart-icon-btn {
   position: absolute;
   top: 1rem;
   right: 1rem;
   opacity: 0;
+  z-index: 10;
 }
 
 .movie-card:hover .heart-icon-btn,
 .heart-icon-btn.active {
   opacity: 1;
+}
+
+.heart-icon-btn:hover,
+.wishlist-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.heart-icon-btn:hover i,
+.wishlist-btn:hover i {
+  transform: scale(1.2);
+  filter: drop-shadow(0 2px 4px rgba(255, 59, 124, 0.3));
 }
 
 /* Pagination */
@@ -510,9 +637,10 @@ td {
   justify-content: center;
   align-items: center;
   gap: 1.5rem;
-  padding: 1.5rem;
+  padding: 1rem;
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
+  border-radius: 12px;
   margin-top: auto;
 }
 
@@ -522,8 +650,31 @@ td {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-light);
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.pagination button:not(:disabled):hover {
+  background: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-light);
+}
+
+.dark-mode .pagination span {
+  color: var(--page-text-dark);
 }
 
 /* Scroll Top Button */
@@ -531,8 +682,8 @@ td {
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  width: 48px;
-  height: 48px;
+  width: 56px; /* 크기 증가 */
+  height: 56px; /* 크기 증가 */
   border-radius: 50%;
   background: var(--primary-color);
   color: white;
@@ -541,8 +692,24 @@ td {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+  font-size: 1.5rem; /* 아이콘 크기 증가 */
+  transition: all 0.3s ease, transform 0.4s ease;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  z-index: 1000;
+}
+
+.scroll-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.scroll-top:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 12px 24px rgba(229, 9, 20, 0.4);
 }
 
 /* Loading States */
@@ -557,13 +724,18 @@ td {
   backdrop-filter: blur(4px);
 }
 
+.loading p {
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
 .spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top: 4px solid var(--primary-color);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid var(--primary-color);
   border-radius: 50%;
-  animation: spin 1s infinite linear;
+  animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 /* Animations */
@@ -584,29 +756,136 @@ td {
 }
 
 /* Media Queries */
-@media (max-width: 768px) {
-  .grid-view {
-    height: calc(100vh - 180px);
+@media (min-width: 1920px) {
+  .movie-grid {
+    grid-auto-columns: minmax(280px, 1fr);
   }
 
+  .movie-info h3 {
+    font-size: 1.4rem;
+  }
+}
+
+@media (min-width: 1440px) and (max-width: 1919px) {
   .movie-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-auto-columns: minmax(240px, 1fr);
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .movie-grid {
+    grid-auto-columns: minmax(220px, 1fr);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .movie-grid {
+    grid-auto-columns: minmax(200px, 1fr);
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  th, td {
+    padding: 0.6rem 0.8rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .popular {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
     gap: 1rem;
     padding: 1rem;
   }
 
+  .header h1 {
+    font-size: 1.8rem;
+  }
+
+  .movie-grid {
+    grid-auto-columns: minmax(160px, 1fr);
+    gap: 1rem;
+  }
+
   .movie-info h3 {
-    font-size: 1.2rem;
+    font-size: 1rem;
+  } 
+
+  .table-view {
+    padding: 0.5rem;
   }
 
   table {
-    min-width: 700px;
+    font-size: 0.9rem;
   }
 
+  .poster-cell img {
+    width: 35px;
+    height: 52px;
+  }
+
+  .scroll-top {
+    bottom: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+* {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Dark Mode Specific */
+.dark-mode th {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode td {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .movie-card {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .pagination button {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-dark);
+}
+
+.dark-mode .loading p {
+  color: var(--text-light);
+}
+
+/* Print Styles */
+@media print {
+  .movie-grid {
+    display: block;
+  }
+
+  .movie-card {
+    page-break-inside: avoid;
+    margin-bottom: 2rem;
+  }
+
+  .view-toggle,
+  .pagination,
+  .scroll-top,
   .heart-icon-btn,
   .wishlist-btn {
-    width: 36px;
-    height: 36px;
+    display: none;
   }
 }
 </style>

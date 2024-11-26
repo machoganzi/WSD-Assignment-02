@@ -17,7 +17,6 @@ import { computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useThemeStore } from '@/stores/themeStore';
 import Header from './components/layout/Header.vue';
-import Footer from './components/layout/Footer.vue';
 
 const route = useRoute();
 const themeStore = useThemeStore();

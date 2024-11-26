@@ -201,25 +201,35 @@
   
   // 필터링된 영화 목록
   const filteredMovies = computed(() => {
-    return movies.value.filter(movie => {
-      // 장르 필터
-      if (selectedGenres.value.length && 
-          !selectedGenres.value.some(genreId => movie.genre_ids.includes(genreId))) {
-        return false
-      }
-      // 평점 필터
-      if (movie.vote_average < minRating.value) {
-        return false
-      }
-          // 언어 필터
-      if (selectedLanguage.value !== 'all' && 
-          movie.original_language !== selectedLanguage.value) {
-        return false
-      }
-      return true
-    })
-  })
+  return movies.value.filter(movie => {
+    // 모든 조건 중 하나라도 만족하면 true를 반환
+    const genreMatch = selectedGenres.value.length === 0 || 
+                      selectedGenres.value.some(genreId => movie.genre_ids.includes(genreId));
+    
+    const languageMatch = selectedLanguage.value === 'all' || 
+movie.original_language === selectedLanguage.value;
+    
+    const ratingMatch = movie.vote_average >= minRating.value;
+    
+    // 하나라도 조건을 만족하면 true 반환
+    return genreMatch || languageMatch || ratingMatch;
+  });
+});
+
+// 필터 적용
+const applyFilters = () => {
+  // 필터가 하나도 선택되지 않았으면 기본값으로 리셋
+  if (selectedGenres.value.length === 0 && 
+      selectedLanguage.value === 'all' && 
+      minRating.value === 0) {
+    resetFilters();
+  }
   
+  isFilterOpen.value = false;
+  searchMovies();
+};
+
+
   // 검색어 저장
   const saveSearch = (query: string) => {
     if (!query.trim()) return;
@@ -420,298 +430,365 @@
   
   <style scoped>
   .search {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-    height: calc(100vh - 70px);
-    display: flex;
-    flex-direction: column;
+    min-height: 100vh;
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-right: calc(-50vw + 50%);
+    padding: 20px max(4%, calc((100vw - 1920px) / 2));
+    background: rgba(255, 255, 255, 0.98);
+    color: #333;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
-    /* 검색 입력창 컨테이너 */
-  .search-input-container {
-    position: relative;
-    flex: 1;
-  }
-
-  /* 최근 검색어 드롭다운 */
-  .recent-searches {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: #2a2a2a;
-    border-radius: 4px;
-    margin-top: 4px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-  }
-
-  .recent-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #333;
-  }
-
-  .clear-all {
-    background: none;
-    border: none;
-    color: #e50914;
-    cursor: pointer;
-    font-size: 0.9rem;
-  }
-
-  .recent-searches ul {
-    list-style: none;
-    max-height: 300px;
-    overflow-y: auto;
-  }
-
-  .recent-searches li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  .recent-searches li:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .search-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  .dark-mode .search {
+    background: #141414;
     color: #fff;
   }
-
-  .remove-search {
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    padding: 4px;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .recent-searches li:hover .remove-search {
-    opacity: 1;
-  }
-
-  .remove-search:hover {
-    color: #e50914;
-  }
-
-  .search-header {
-    margin-bottom: 2rem;
-    max-width: 800px;  /* 검색창 최대 너비 설정 */
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
-  } 
   
+  /* Header Styles */
+  .search-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    padding: 1.5rem 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .search-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #e50914, #ff758c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Search Bar */
   .search-bar {
-    margin-top: 1rem;
     display: flex;
     gap: 1rem;
+    width: 100%;
+  }
+  
+  .search-input-container {
+    flex: 1;
+    position: relative;
   }
   
   .search-bar input {
-    flex: 1;
-    padding: 1rem 1.5rem;  /* 패딩 증가 */
-    border: none;
-    border-radius: 8px;    /* 둥글게 */
-    background: #333;
-    color: white;
-    font-size: 1.1rem;    /* 폰트 크기 증가 */
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: #333;
+    font-size: 1rem;
     transition: all 0.3s ease;
   }
   
-  .search-bar input:focus {
-    background: #404040;
-    outline: none;
-    box-shadow: 0 0 0 2px #e50914;
-  }
-
-  .filter-toggle {
-    padding: 1rem 1.5rem;  /* 패딩 증가 */
-    border: none;
-    border-radius: 8px;    /* 둥글게 */
-    background: #e50914;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.1rem;    /* 폰트 크기 증가 */
-    transition: background-color 0.3s ease;
-  }
-  
-  .filter-toggle:hover {
-    background: #f40612;
-  }
-
-  .filter-panel {
-    background: #1a1a1a;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    display: none;
-  }
-  
-  .filter-panel.is-open {
-    display: block;
-  }
-  
-  .filter-section {
-    margin-bottom: 1.5rem;
-  }
-  
-  .filter-section h3 {
-    margin-bottom: 1rem;
+  .dark-mode .search-bar input {
+    background: rgba(255, 255, 255, 0.05);
     color: #fff;
   }
   
-  .genre-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  .genre-tag {
-    padding: 0.5rem 1rem;
-    border: 1px solid #333;
-    border-radius: 20px;
-    background: none;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-  
-  .genre-tag.active {
-    background: #e50914;
+  .search-bar input:focus {
+    outline: none;
     border-color: #e50914;
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
   }
   
-  .rating-range {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  
-  .rating-range input {
-    flex: 1;
-  }
-  
-  select {
-    width: 100%;
-    padding: 0.8rem;
-    background: #333;
+  /* Filter Toggle Button */
+  .filter-toggle {
+    padding: 0 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
-    border-radius: 4px;
-    color: white;
-  }
-  
-  .filter-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-  }
-
-  .language-options {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .language-btn {
-    padding: 0.5rem 1rem;
-    border: 1px solid #333;
-    border-radius: 20px;
-    background: none;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 0.9rem;
-  }
-
-  .language-btn:hover {
-    background: rgba(229, 9, 20, 0.2);
-    border-color: #e50914;
-  }
-
-  .language-btn.active {
-    background: #e50914;
-    border-color: #e50914;
-  } 
-
-  /* 모바일 대응 */
-  @media (max-width: 768px) {
-    .language-btn {
-      padding: 0.4rem 0.8rem;
-      font-size: 0.8rem;
-    }
-  }
-  
-  .reset-btn, .apply-btn {
-    flex: 1;
-    padding: 0.8rem;
-    border: none;
-    border-radius: 4px;
+    border-radius: 12px;
+    color: #333;
+    font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 0.5rem;
+    transition: all 0.3s ease;
   }
   
-  .reset-btn {
-    background: #333;
-    color: white;
+  .dark-mode .filter-toggle {
+    color: #fff;
   }
   
-  .apply-btn {
+  .filter-toggle:hover {
     background: #e50914;
     color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
   }
   
+  /* Filter Panel */
+.filter-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  display: none;
+}
+  
+.filter-panel.is-open {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+.filter-section {
+  margin-bottom: 2rem;
+}
+
+.filter-section h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Genre Tags */
+.genre-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.genre-tag {
+  padding: 0.6rem 1.2rem;
+  border: 2px solid rgba(229, 9, 20, 0.2);
+  border-radius: 20px;
+  background: transparent;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark-mode .genre-tag {
+  color: #fff;
+  border-color: rgba(229, 9, 20, 0.4);
+}
+
+.genre-tag::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #e50914;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.genre-tag:hover::before {
+  opacity: 0.1;
+}
+
+.dark-mode .genre-tag:hover::before {
+  opacity: 0.2;
+}
+
+.genre-tag.active {
+  background: #e50914;
+  border-color: #e50914;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+}
+
+.genre-tag.active:hover {
+  background: #f40612;
+  transform: translateY(-1px);
+}
+
+
+.dark-mode .filter-section h3 {
+  color: #fff;
+}
+
+/* Language Buttons */
+.language-options {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.language-btn {
+  padding: 0.6rem 1.2rem;
+  border: 2px solid rgba(229, 9, 20, 0.2);
+  border-radius: 20px;
+  background: transparent;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark-mode .language-btn {
+  color: #fff;
+  border-color: rgba(229, 9, 20, 0.4);
+}
+
+.language-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #e50914;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: -1;
+}
+
+.language-btn:hover::before {
+  opacity: 0.1;
+}
+
+.dark-mode .language-btn:hover::before {
+  opacity: 0.2;
+}
+
+.language-btn.active {
+  background: #e50914;
+  border-color: #e50914;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+}
+
+/* Filter Actions */
+.filter-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.reset-btn, .apply-btn {
+  flex: 1;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.reset-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: #333;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark-mode .reset-btn {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.reset-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.apply-btn {
+  background: #e50914;
+  color: white;
+}
+
+.apply-btn:hover {
+  background: #f40612;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+}
+
+.language-btn.active:hover {
+  background: #f40612;
+  transform: translateY(-1px);
+}
+
+
+  /* Results Container */
   .results-container {
-    flex: 1;
+    height: calc(100vh - 160px);
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
     overflow-y: auto;
-    padding: 1rem;
-    position: relative;  /* 스크롤 탑 버튼의 기준점 */
+    scrollbar-width: thin;
+    scrollbar-color: #e50914 rgba(255, 255, 255, 0.1);
   }
   
+  .results-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .results-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  
+  .results-container::-webkit-scrollbar-thumb {
+    background: #e50914;
+    border-radius: 4px;
+  }
+  
+  /* Movie Grid */
   .movie-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 2rem;
+    padding: 1rem;
   }
   
   .movie-card {
+    width: 100%;
+    height: 240px;
     position: relative;
-    transition: transform 0.3s;
-    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   }
   
   .movie-card:hover {
-    transform: scale(1.05);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   }
   
   .poster-wrapper {
     position: relative;
-    border-radius: 8px;
-    overflow: hidden;
+    width: 100%;
+    height: 100%;
   }
   
   .poster-wrapper img {
     width: 100%;
-    aspect-ratio: 2/3;
+    height: 100%;
     object-fit: cover;
   }
   
@@ -721,54 +798,65 @@
     left: 0;
     right: 0;
     padding: 1rem;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
-    transform: translateY(100%);
-    transition: transform 0.3s;
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(0, 0, 0, 0.7) 50%,
+      transparent 100%
+    );
+    color: white;
   }
   
-  .poster-wrapper:hover .movie-info {
-    transform: translateY(0);
+  .movie-info h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
   }
   
   .heart-icon {
     position: absolute;
     top: 1rem;
     right: 1rem;
-    font-size: 1.5rem;
-    color: #e50914;
-    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    backdrop-filter: blur(4px);
+    color: white;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
   }
   
+  /* Loading States */
   .loading-state, .empty-state {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 300px;
-    gap: 1rem;
+    min-height: 300px;
+    gap: 1.5rem;
     color: #666;
   }
   
   .spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #e50914;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid #e50914;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
   
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
+  /* Scroll Top Button */
   .scroll-top {
     position: fixed;
     bottom: 2rem;
     right: 2rem;
-    width: 50px;         /* 크기 증가 */
-    height: 50px;        /* 크기 증가 */
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: #e50914;
     color: white;
@@ -777,38 +865,95 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;   /* 아이콘 크기 증가 */
+    font-size: 1.5rem;
     transition: all 0.3s ease;
-    z-index: 100;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  }
-
-  .scroll-top:hover {
-    transform: translateY(-5px);
-    background: #f40612;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    z-index: 1000;
   }
   
+  .scroll-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+  
+  .scroll-top:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 12px 24px rgba(229, 9, 20, 0.4);
+  }
+  
+  /* Recent Searches Dropdown */
+  .recent-searches {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.5rem;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+  }
+  
+  .dark-mode .recent-searches {
+    background: rgba(20, 20, 20, 0.98);
+  }
+  
+  .recent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  
+  .dark-mode .recent-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Media Queries */
   @media (max-width: 768px) {
-  .movie-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
+    .search-header {
+      padding: 1rem;
+    }
+  
+    .search-header h1 {
+      font-size: 2rem;
+    }
+  
+    .search-bar {
+      flex-direction: column;
+    }
+  
+    .movie-grid {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+  
+    .results-container {
+      padding: 1rem;
+    }
   }
-
-  .search-bar {
-    flex-direction: column;
+  
+  @media (max-width: 480px) {
+    .movie-grid {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
   }
-
-  .filter-toggle {
-    width: 100%;
-  }
-
-  .genre-tags {
-    gap: 0.25rem;
-  }
-
-  .genre-tag {
-    font-size: 0.9rem;
-    padding: 0.4rem 0.8rem;
-  }
-}
-</style>
+  </style>
