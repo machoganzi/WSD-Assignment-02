@@ -165,6 +165,7 @@
   </div>
  </template>
   
+
   <script setup lang="ts">
   import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
   import { tmdbApi } from '../../services/tmdb'
@@ -174,6 +175,7 @@
   // 상태 관리
   const searchQuery = ref('')
   const movies = ref<Movie[]>([])
+  const filteredMoviesCache = ref<Movie[]>([])
   const genres = ref<Genre[]>([])
   const selectedGenres = ref<number[]>([])
   const minRating = ref(0)
@@ -187,8 +189,8 @@
   const wishlisted = ref<number[]>(JSON.parse(localStorage.getItem('wishlisted') || '[]'))
   const recentSearches = ref<string[]>(JSON.parse(localStorage.getItem('recentSearches') || '[]'))
   const showRecentSearches = ref(false)
-  const selectedLanguage = ref<string>('all') // 'all', 'ko', 'en' 중 하나
-
+  const selectedLanguage = ref<string>('all')
+  
   // 이미지 URL 생성
   const getImageUrl = (path: string | null) => {
     return tmdbApi.getImageUrl(path, 'w500')
@@ -199,91 +201,79 @@
     return new Date(dateStr).toLocaleDateString('ko-KR')
   }
   
-  // 필터링된 영화 목록
-  const filteredMovies = computed(() => {
-  return movies.value.filter(movie => {
-    // 모든 조건 중 하나라도 만족하면 true를 반환
-    const genreMatch = selectedGenres.value.length === 0 || 
-                      selectedGenres.value.some(genreId => movie.genre_ids.includes(genreId));
-    
-    const languageMatch = selectedLanguage.value === 'all' || 
-movie.original_language === selectedLanguage.value;
-    
-    const ratingMatch = movie.vote_average >= minRating.value;
-    
-    // 하나라도 조건을 만족하면 true 반환
-    return genreMatch || languageMatch || ratingMatch;
-  });
-});
-
-// 필터 적용
-const applyFilters = () => {
-  // 필터가 하나도 선택되지 않았으면 기본값으로 리셋
-  if (selectedGenres.value.length === 0 && 
-      selectedLanguage.value === 'all' && 
-      minRating.value === 0) {
-    resetFilters();
+  // 필터 조건 확인 함수
+  const moviePassesFilters = (movie: Movie) => {
+    // 장르 필터
+    if (selectedGenres.value.length && 
+        !selectedGenres.value.every(genreId => movie.genre_ids.includes(genreId))) {
+      return false
+    }
+    // 평점 필터
+    if (movie.vote_average < minRating.value) {
+      return false
+    }
+    // 언어 필터
+    if (selectedLanguage.value !== 'all' && 
+        movie.original_language !== selectedLanguage.value) {
+      return false
+    }
+    return true
   }
   
-  isFilterOpen.value = false;
-  searchMovies();
-};
-
-
+  // 필터링된 영화 목록
+  const filteredMovies = computed(() => {
+    return movies.value.filter(moviePassesFilters)
+  })
+  
   // 검색어 저장
   const saveSearch = (query: string) => {
-    if (!query.trim()) return;
+    if (!query.trim()) return
     
-    const searches = recentSearches.value;
-    // 중복 검색어 제거
-    const index = searches.indexOf(query);
+    const searches = recentSearches.value
+    const index = searches.indexOf(query)
     if (index > -1) {
-      searches.splice(index, 1);
+      searches.splice(index, 1)
     }
     
-    // 최근 검색어를 앞에 추가
-    searches.unshift(query);
+    searches.unshift(query)
     
-    // 최대 10개까지만 저장
     if (searches.length > 10) {
-      searches.pop();
+      searches.pop()
     }
     
-    // localStorage에 저장
-    localStorage.setItem('recentSearches', JSON.stringify(searches));
+    localStorage.setItem('recentSearches', JSON.stringify(searches))
   }
   
   // 검색어 삭제
   const removeSearch = (query: string) => {
-    const searches = recentSearches.value;
-    const index = searches.indexOf(query);
+    const searches = recentSearches.value
+    const index = searches.indexOf(query)
     if (index > -1) {
-      searches.splice(index, 1);
-      localStorage.setItem('recentSearches', JSON.stringify(searches));
+      searches.splice(index, 1)
+      localStorage.setItem('recentSearches', JSON.stringify(searches))
     }
   }
   
   // 검색어 전체 삭제
   const clearSearches = () => {
-    recentSearches.value = [];
-    localStorage.setItem('recentSearches', JSON.stringify([]));
+    recentSearches.value = []
+    localStorage.setItem('recentSearches', JSON.stringify([]))
   }
   
   // 검색어 클릭시 검색 실행
   const selectSearch = (query: string) => {
-    searchQuery.value = query;
-    showRecentSearches.value = false;
-    handleSearch();
+    searchQuery.value = query
+    showRecentSearches.value = false
+    handleSearch()
   }
   
   // 검색 함수
   const handleSearch = debounce(async () => {
-    // 검색어가 있든 없든 항상 검색 실행
     currentPage.value = 1
     movies.value = []
+    filteredMoviesCache.value = []
     await searchMovies()
   
-    // 검색어가 있을 때만 저장
     if (searchQuery.value.trim()) {
       saveSearch(searchQuery.value.trim())
     }
@@ -293,37 +283,60 @@ const applyFilters = () => {
   // 입력창 포커스시 최근 검색어 표시
   const handleFocus = () => {
     if (recentSearches.value.length > 0) {
-      showRecentSearches.value = true;
+      showRecentSearches.value = true
     }
   }
   
   // 입력창 외부 클릭시 최근 검색어 숨기기
   const handleClickOutside = (event: MouseEvent) => {
-    const searchBar = document.querySelector('.search-bar');
+    const searchBar = document.querySelector('.search-bar')
     if (searchBar && !searchBar.contains(event.target as Node)) {
-      showRecentSearches.value = false;
+      showRecentSearches.value = false
     }
   }
   
   // 영화 검색 API 호출
-  const searchMovies = async () => {
+  const searchMovies = async (loadMore = false) => {
+    if (loading.value) return
+    
     loading.value = true
     try {
-      let response;
+      let response
       if (searchQuery.value.trim()) {
-        // 검색어가 있을 때는 검색 결과를 보여줌
         response = await tmdbApi.searchMovies(searchQuery.value, currentPage.value)
       } else {
-        // 검색어가 없을 때는 인기 영화를 보여줌
         response = await tmdbApi.getPopularMovies(currentPage.value)
       }
-
+  
+      const newMovies = response.data.results.filter(moviePassesFilters)
+      
       if (currentPage.value === 1) {
         movies.value = response.data.results
+        filteredMoviesCache.value = newMovies
       } else {
         movies.value = [...movies.value, ...response.data.results]
+        filteredMoviesCache.value = [...filteredMoviesCache.value, ...newMovies]
       }
+      
       totalPages.value = response.data.total_pages
+  
+      // 필터링된 결과가 20개 미만일 경우 계속 로드
+      if (!loadMore) {  // 초기 로드나 필터 적용시에만
+        while (
+          filteredMoviesCache.value.length < 20 && // 20개 미만이고
+          currentPage.value < totalPages.value // 더 로드할 페이지가 있을 때
+        ) {
+          currentPage.value++
+          if (searchQuery.value.trim()) {
+            response = await tmdbApi.searchMovies(searchQuery.value, currentPage.value)
+          } else {
+            response = await tmdbApi.getPopularMovies(currentPage.value)
+          }
+          const additionalMovies = response.data.results.filter(moviePassesFilters)
+          movies.value = [...movies.value, ...response.data.results]
+          filteredMoviesCache.value = [...filteredMoviesCache.value, ...additionalMovies]
+        }
+      }
     } catch (error) {
       console.error('Failed to search movies:', error)
     } finally {
@@ -331,12 +344,30 @@ const applyFilters = () => {
     }
   }
   
-  watch(searchQuery, (newVal) => {
-    if (!newVal) {
-      handleSearch()
+  // 검색어 watch
+  watch(searchQuery, (newVal, oldVal) => {
+    if (newVal !== oldVal) {  // 검색어가 변경되었을 때
+      currentPage.value = 1
+      movies.value = []
+      filteredMoviesCache.value = []
+      
+      if (!newVal) {
+        handleSearch()
+      }
     }
   })
-
+  
+  // 필터 관련 watch
+  watch(
+    [selectedGenres, minRating, selectedLanguage],
+    () => {
+      currentPage.value = 1
+      movies.value = []
+      filteredMoviesCache.value = []
+      searchMovies()
+    }
+  )
+  
   // 장르 토글
   const toggleGenre = (genreId: number) => {
     const index = selectedGenres.value.indexOf(genreId)
@@ -353,11 +384,21 @@ const applyFilters = () => {
     minRating.value = 0
     sortBy.value = 'popularity.desc'
     selectedLanguage.value = 'all'
+    
+    // 필터 초기화 후 첫 페이지부터 다시 로드
+    currentPage.value = 1
+    movies.value = []
+    filteredMoviesCache.value = []
+    searchMovies()
   }
   
   // 필터 적용
   const applyFilters = () => {
     isFilterOpen.value = false
+    // 필터 적용 시 첫 페이지부터 다시 로드
+    currentPage.value = 1
+    movies.value = []
+    filteredMoviesCache.value = []
     searchMovies()
   }
   
@@ -369,9 +410,11 @@ const applyFilters = () => {
     if (!container) return
   
     const { scrollTop, clientHeight, scrollHeight } = container
-    if (scrollTop + clientHeight >= scrollHeight - 100) {
+    const threshold = 100 // 스크롤 임계값
+    
+    if (scrollTop + clientHeight >= scrollHeight - threshold) {
       currentPage.value++
-      await searchMovies()
+      await searchMovies(true) // 스크롤로 인한 로드는 loadMore를 true로 설정
     }
   
     showScrollTop.value = scrollTop > 500
@@ -412,18 +455,20 @@ const applyFilters = () => {
   
   // 컴포넌트 마운트/언마운트
   onMounted(() => {
-    loadGenres();
-    searchMovies(); // 초기 영화 목록 로드
-    document.addEventListener('click', handleClickOutside);
+    loadGenres()
+    searchMovies()
+    document.addEventListener('click', handleClickOutside)
   })
   
   onUnmounted(() => {
-    document.removeEventListener('click', handleClickOutside);
+    document.removeEventListener('click', handleClickOutside)
   })
   
   // sortBy 변경 감지
   watch(sortBy, () => {
     currentPage.value = 1
+    movies.value = []
+    filteredMoviesCache.value = []
     searchMovies()
   })
   </script>
@@ -477,6 +522,7 @@ const applyFilters = () => {
   .search-input-container {
     flex: 1;
     position: relative;
+    z-index: 2000;
   }
   
   .search-bar input {
@@ -732,6 +778,7 @@ const applyFilters = () => {
 
   /* Results Container */
   .results-container {
+    z-index: 1;
     height: calc(100vh - 160px);
     padding: 2rem;
     background: rgba(255, 255, 255, 0.05);
@@ -762,6 +809,7 @@ const applyFilters = () => {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 2rem;
     padding: 1rem;
+    z-index: 1;
   }
   
   .movie-card {
@@ -896,7 +944,7 @@ const applyFilters = () => {
     border-radius: 12px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
-    z-index: 1000;
+    z-index: 2000;
   }
   
   .dark-mode .recent-searches {
@@ -931,6 +979,7 @@ const applyFilters = () => {
   @media (max-width: 768px) {
     .search-header {
       padding: 1rem;
+      z-index: 2000;
     }
   
     .search-header h1 {
