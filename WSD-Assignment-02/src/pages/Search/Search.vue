@@ -978,7 +978,7 @@
   /* Media Queries */
   @media (max-width: 768px) {
     .search-header {
-      padding: 1rem;
+      position: relative;
       z-index: 2000;
     }
   
