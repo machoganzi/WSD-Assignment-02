@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { MovieResponse, GenreResponse } from '../types/tmdb'
+import type { Movie ,MovieResponse, GenreResponse } from '../types/tmdb'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_TMDB_BASE_URL,
@@ -43,9 +43,9 @@ export const tmdbApi = {
     apiClient.get(`/movie/${movieId}/videos`),
 
   // 이미지 URL 생성
-  getImageUrl: (path: string | null, size: string = 'original'): string | null => {
-    if (!path) return null
-    return `${import.meta.env.VITE_TMDB_IMAGE_BASE_URL}/${size}${path}`
+  getImageUrl: (path: string | null, size: string = 'original'): string => {
+    if (!path) return '/default-movie-poster.jpg'; // 기본 이미지 경로 반환
+    return `${import.meta.env.VITE_TMDB_IMAGE_BASE_URL}/${size}${path}`;
   }
 }
 
