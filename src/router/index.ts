@@ -35,7 +35,7 @@ const router = createRouter({
 })
 
 // 로그인 체크 미들웨어
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   const isAuthenticated = localStorage.getItem('TMDb-Key')
   if (to.name !== 'SignIn' && !isAuthenticated) {
     next({ name: 'SignIn' })
