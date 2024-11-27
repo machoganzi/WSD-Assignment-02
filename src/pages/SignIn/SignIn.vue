@@ -420,6 +420,43 @@ const toggleMode = () => {
   transition-delay: 1.2s;
 }
 
+@media (max-width: 1024px) {
+  .wrapper {
+    width: 90%;
+    height: 600px;
+  }
+  
+  .wrapper .form-box.login,
+  .wrapper .form-box.signup {
+    padding: 0 40px;
+  }
+}
 
+@media (max-width: 768px) {
+  .wrapper {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+  }
 
+  .wrapper .form-box {
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  .info-text {
+    display: none;
+  }
+
+  .bg-animate,
+  .bg-animate2 {
+    display: none;
+  }
+
+  .signin-container::before {
+    width: 100%;
+    height: 100%;
+    animation: none;
+  }
+}
 </style>
