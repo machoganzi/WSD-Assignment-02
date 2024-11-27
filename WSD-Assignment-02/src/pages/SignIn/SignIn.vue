@@ -1,5 +1,13 @@
 <template>
   <div class="signin-container">
+    <!-- Toast Notifications -->
+    <div class="toast-container" v-show="toast.show">
+      <div class="toast" :class="toast.type">
+        <i :class="toast.icon"></i>
+        {{ toast.message }}
+      </div>
+    </div>
+
     <div class="wrapper" :class="{ active: isSignUpMode }">
       <div class="bg-animate"></div>
       <div class="bg-animate2"></div>
@@ -9,17 +17,49 @@
         <h2 class="animation" style="--data:0;">Login</h2>
         <form @submit.prevent="handleSignIn">
           <div class="input-box animation" style="--data:1;">
-            <input type="text" v-model="loginForm.username" required placeholder=" ">
-            <label>Username</label>
-            <i class="fas fa-user"></i>
+            <input 
+              type="email" 
+              v-model="loginForm.email" 
+              :class="{ 'error-input': loginErrors.email }"
+              required 
+              placeholder=" "
+            >
+            <label>Email</label>
+            <i class="fas fa-envelope"></i>
+            <span class="error-message" v-if="loginErrors.email">{{ loginErrors.email }}</span>
           </div>
-          <div class="input-box animation" style="--data:2;">
-            <input type="password" v-model="loginForm.password" required placeholder=" ">
-            <label>Password</label>
+          <div class="input-box animation password-box" style="--data:2;">
+            <input 
+              :type="showPassword ? 'text' : 'password'" 
+              v-model="loginForm.password" 
+              required 
+              placeholder=" "
+            >
+            <label>API Key</label>
             <i class="fas fa-lock"></i>
+            <i 
+              :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"
+              class="toggle-password"
+              @click="togglePassword"
+            ></i>
           </div>
-          <button type="submit" class="btn animation" style="--data:3;">Login</button>
-          <div class="reg-link animation" style="--data:4;">
+          <div class="options-box animation" style="--data:3;">
+            <label class="remember-me">
+              <input type="checkbox" v-model="loginForm.rememberMe">
+              <span class="checkmark"></span>
+              Remember me
+            </label>
+          </div>
+          <button 
+            type="submit" 
+            class="btn animation" 
+            :class="{ 'loading': isLoading }" 
+            style="--data:4;"
+          >
+            <span v-if="!isLoading">Login</span>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+          </button>
+          <div class="reg-link animation" style="--data:5;">
             <p>Don't have an account? <a href="#" @click.prevent="toggleMode">Sign Up</a></p>
           </div>
         </form>
@@ -27,25 +67,67 @@
 
       <!-- 회원가입 폼 -->
       <div class="form-box signup">
-        <h2 class="animation">Sign Up</h2>
+        <h2 class="animation" style="--data:16;">Sign Up</h2>
         <form @submit.prevent="handleSignUp">
           <div class="input-box animation" style="--data:17;">
-            <input type="text" v-model="signupForm.username" required placeholder=" ">
-            <label>Username</label>
-            <i class="fas fa-user"></i>
-          </div>
-          <div class="input-box animation" style="--data:18;">
-            <input type="email" v-model="signupForm.email" required placeholder=" ">
+            <input 
+              type="email" 
+              v-model="signupForm.email" 
+              :class="{ 'error-input': signupErrors.email }"
+              required 
+              placeholder=" "
+            >
             <label>Email</label>
             <i class="fas fa-envelope"></i>
+            <span class="error-message" v-if="signupErrors.email">{{ signupErrors.email }}</span>
           </div>
-          <div class="input-box animation" style="--data:19;">
-            <input type="password" v-model="signupForm.password" required placeholder=" ">
-            <label>Password</label>
+          <div class="input-box animation password-box" style="--data:18;">
+            <input 
+              :type="showPassword ? 'text' : 'password'" 
+              v-model="signupForm.password" 
+              required 
+              placeholder=" "
+            >
+            <label>API Key</label>
             <i class="fas fa-lock"></i>
+            <i 
+              :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"
+              class="toggle-password"
+              @click="togglePassword"
+            ></i>
           </div>
-          <button type="submit" class="btn animation" style="--data:20;">Sign Up</button>
-          <div class="reg-link animation" style="--data:21;">
+          <div class="input-box animation password-box" style="--data:19;">
+            <input 
+              :type="showPassword ? 'text' : 'password'" 
+              v-model="signupForm.confirmPassword" 
+              required 
+              placeholder=" "
+              :class="{ 'error-input': signupErrors.confirmPassword }"
+            >
+            <label>Confirm API Key</label>
+            <i class="fas fa-lock"></i>
+            <span class="error-message" v-if="signupErrors.confirmPassword">
+              {{ signupErrors.confirmPassword }}
+            </span>
+          </div>
+          <div class="terms-box animation" style="--data:20;">
+            <label class="remember-me">
+              <input type="checkbox" v-model="signupForm.terms">
+              <span class="checkmark"></span>
+              I agree to the <a href="#" @click.prevent="showTerms" class="terms-link">Terms & Conditions</a>
+            </label>
+          </div>
+          <button 
+            type="submit" 
+            class="btn animation" 
+            :class="{ 'loading': isLoading }" 
+            :disabled="!signupForm.terms || isLoading"
+            style="--data:21;"
+          >
+            <span v-if="!isLoading">Sign Up</span>
+            <i v-else class="fas fa-spinner fa-spin"></i>
+          </button>
+          <div class="reg-link animation" style="--data:22;">
             <p>Already have an account? <a href="#" @click.prevent="toggleMode">Login</a></p>
           </div>
         </form>
@@ -54,109 +136,233 @@
       <!-- 로그인 정보 텍스트 -->
       <div class="info-text login">
         <h2 class="animation" style="--data:0;">Welcome Back!</h2>
-        <p class="animation" style="--data:1;">Continue your journey with us</p>
+        <p class="animation" style="--data:1;">Enter your TMDB API key to continue</p>
       </div>
 
       <!-- 회원가입 정보 텍스트 -->
       <div class="info-text signup">
         <h2 class="animation" style="--data:22;">Hello, Friend!</h2>
-        <p class="animation" style="--data:23;">Join us for an amazing experience</p>
+        <p class="animation" style="--data:23;">Start your journey with your TMDB API key</p>
+      </div>
+    </div>
+
+    <!-- Terms Modal -->
+    <div v-if="showTermsModal" class="modal-overlay" @click.self="closeTerms">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Terms & Conditions</h3>
+          <button class="close-btn" @click="closeTerms">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-content">
+          <p>By creating an account, you agree to:</p>
+          <ul>
+            <li>Provide your own valid TMDB API key</li>
+            <li>Use the service responsibly</li>
+            <li>Keep your API key secure</li>
+            <li>Respect API rate limits</li>
+          </ul>
+        </div>
+        <button @click="acceptTerms" class="btn modal-btn">
+          Accept & Continue
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { tmdbApi } from '../../services/tmdb'
 
 const router = useRouter()
 const isSignUpMode = ref(false)
+const showPassword = ref(false)
+const isLoading = ref(false)
+const showTermsModal = ref(false)
 
+// Toast notification
+const toast = reactive({
+  show: false,
+  message: '',
+  type: 'success',
+  icon: 'fas fa-check'
+})
+
+// Form data
 const loginForm = reactive({
-  username: '',
-  password: '' // TMDB API 키
+  email: '',
+  password: '',
+  rememberMe: false
 })
 
 const signupForm = reactive({
-  username: '',
   email: '',
-  password: '' // TMDB API 키
+  password: '',
+  confirmPassword: '',
+  terms: false
 })
 
-// 로컬스토리지에서 사용자 정보 관리
-const getUsers = () => {
-  const users = localStorage.getItem('users')
-  return users ? JSON.parse(users) : []
+// Form errors
+const loginErrors = reactive({
+  email: ''
+})
+
+const signupErrors = reactive({
+  email: '',
+  confirmPassword: ''
+})
+
+// Email validation
+const validateEmail = (email: string): boolean => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return re.test(email)
 }
 
-const saveUsers = (users: any[]) => {
-  localStorage.setItem('users', JSON.stringify(users))
+// Toast notification handler
+const showToast = (message: string, type: 'success' | 'error') => {
+  toast.message = message
+  toast.type = type
+  toast.icon = type === 'success' ? 'fas fa-check' : 'fas fa-times'
+  toast.show = true
+  setTimeout(() => {
+    toast.show = false
+  }, 3000)
 }
 
+// Remember me logic
+onMounted(() => {
+  const savedEmail = localStorage.getItem('remembered-email')
+  if (savedEmail) {
+    loginForm.email = savedEmail
+    loginForm.rememberMe = true
+  }
+})
+
+// Handle form submission
 const handleSignIn = async () => {
   try {
-    // 1. 등록된 사용자인지 확인
-    const users = getUsers()
-    const user = users.find((u: any) => 
-      u.username === loginForm.username && 
-      u.apiKey === loginForm.password
-    )
-
-    if (!user) {
-      alert('아이디 또는 비밀번호가 올바르지 않습니다.')
+    loginErrors.email = ''
+    
+    // Validate email
+    if (!validateEmail(loginForm.email)) {
+      loginErrors.email = 'Please enter a valid email address'
       return
     }
 
-    // 2. API 키 유효성 검증
+    isLoading.value = true
+
+    // Validate API key
     await tmdbApi.getPopularMovies(1, loginForm.password)
     
-    // 3. 로그인 처리
+    // Handle remember me
+    if (loginForm.rememberMe) {
+      localStorage.setItem('remembered-email', loginForm.email)
+    } else {
+      localStorage.removeItem('remembered-email')
+    }
+
+    // Save auth state
     localStorage.setItem('TMDb-Key', loginForm.password)
-    localStorage.setItem('userId', loginForm.username)
+    localStorage.setItem('userId', loginForm.email)
     localStorage.setItem('isAuthenticated', 'true')
-    router.push('/')
+
+    showToast('Successfully logged in!', 'success')
+    setTimeout(() => router.push('/'), 500)
   } catch (error) {
-    alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
+    showToast('Invalid API key', 'error')
+  } finally {
+    isLoading.value = false
   }
 }
 
 const handleSignUp = async () => {
   try {
-    // 1. 이미 등록된 사용자인지 확인
-    const users = getUsers()
-    if (users.some((u: any) => u.username === signupForm.username)) {
-      alert('이미 등록된 사용자입니다.')
+    signupErrors.email = ''
+    signupErrors.confirmPassword = ''
+    
+    // Validate email
+    if (!validateEmail(signupForm.email)) {
+      signupErrors.email = 'Please enter a valid email address'
       return
     }
 
-    // 2. API 키 유효성 검증
+    // Validate password match
+    if (signupForm.password !== signupForm.confirmPassword) {
+      signupErrors.confirmPassword = 'API keys do not match'
+      return
+    }
+
+    if (!signupForm.terms) {
+      showToast('Please accept the terms and conditions', 'error')
+      return
+    }
+
+    isLoading.value = true
+
+    // Validate API key
     await tmdbApi.getPopularMovies(1, signupForm.password)
     
-    // 3. 사용자 등록
+    // Save user data
+    const users = JSON.parse(localStorage.getItem('users') || '[]')
     users.push({
-      username: signupForm.username,
       email: signupForm.email,
       apiKey: signupForm.password
     })
-    saveUsers(users)
+    localStorage.setItem('users', JSON.stringify(users))
 
-    // 4. 자동 로그인 처리
-    localStorage.setItem('TMDb-Key', signupForm.password)
-    localStorage.setItem('userId', signupForm.username)
-    localStorage.setItem('isAuthenticated', 'true')
+    showToast('Account created successfully!', 'success')
     
-    alert('회원가입이 완료되었습니다!')
-    router.push('/')
+    // Auto login
+    loginForm.email = signupForm.email
+    loginForm.password = signupForm.password
+    isSignUpMode.value = false
   } catch (error) {
-    alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
+    showToast('Invalid API key', 'error')
+  } finally {
+    isLoading.value = false
   }
+}
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
 }
 
 const toggleMode = () => {
   isSignUpMode.value = !isSignUpMode.value
+  showPassword.value = false
+  loginErrors.email = ''
+  signupErrors.email = ''
+  signupErrors.confirmPassword = ''
 }
+
+const showTerms = () => {
+  showTermsModal.value = true
+}
+
+const closeTerms = () => {
+  showTermsModal.value = false
+}
+
+const acceptTerms = () => {
+  signupForm.terms = true
+  showTermsModal.value = false
+}
+
+// Clear errors on input change
+watch(() => loginForm.email, () => {
+  loginErrors.email = ''
+})
+
+watch(() => signupForm.email, () => {
+  signupErrors.email = ''
+})
+
+watch(() => signupForm.confirmPassword, () => {
+  signupErrors.confirmPassword = ''
+})
 </script>
 
 <style scoped>
@@ -182,9 +388,9 @@ const toggleMode = () => {
   height: 1200px;
   background: radial-gradient(
     circle,
-    rgba(229, 9, 20, 0.2) 0%,
-    rgba(229, 9, 20, 0.1) 30%,
-    rgba(229, 9, 20, 0) 70%
+    rgba(100, 65, 165, 0.2) 0%,
+    rgba(100, 65, 165, 0.1) 30%,
+    rgba(100, 65, 165, 0) 70%
   );
   animation: pulse 4s infinite;
   pointer-events: none;
@@ -211,7 +417,7 @@ const toggleMode = () => {
   height: 600px;
   background: #fff;
   border-radius: 6px;
-  box-shadow: 0 0 50px rgba(229, 9, 20, 0.3);
+  box-shadow: 0 0 50px rgba(100, 65, 165, 0.3);
   overflow: hidden;
   z-index: 1;
 }
@@ -258,7 +464,7 @@ const toggleMode = () => {
   border-bottom: 2px solid #000;
   padding: 0 25px 0 5px;
   font-size: 16px;
-  color: #000000;  /* 하얀색 텍스트 */
+  color: #000000;
   z-index: 1;
 }
 
@@ -275,7 +481,7 @@ const toggleMode = () => {
 .input-box input:focus ~ label,
 .input-box input:not(:placeholder-shown) ~ label {
   top: -5px;
-  color: #000;
+  color: #6441A5;
 }
 
 .input-box i {
@@ -291,7 +497,7 @@ const toggleMode = () => {
   position: relative;
   width: 100%;
   height: 45px;
-  background: #000;
+  background: #6441A5;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -299,10 +505,16 @@ const toggleMode = () => {
   font-size: 16px;
   font-weight: 600;
   transition: 0.3s;
+  overflow: hidden;
 }
 
 .btn:hover {
-  background: #333;
+  background: #2a0845;
+}
+
+.btn.loading {
+  pointer-events: none;
+  opacity: 0.8;
 }
 
 .reg-link {
@@ -313,7 +525,7 @@ const toggleMode = () => {
 }
 
 .reg-link a {
-  color: #000;
+  color: #6441A5;
   text-decoration: none;
   font-weight: 600;
 }
@@ -332,7 +544,7 @@ const toggleMode = () => {
   color: #fff;
   text-align: center;
   padding: 0 40px;
-  background: #000;
+  background: #6441A5;
   transition: 0.7s ease-in-out;
 }
 
@@ -351,6 +563,7 @@ const toggleMode = () => {
   line-height: 1.4;
   text-transform: uppercase;
   margin-bottom: 10px;
+  color: #fff;
 }
 
 .info-text p {
@@ -394,7 +607,7 @@ const toggleMode = () => {
   right: 0;
   width: 1100px;
   height: 800px;
-  background: #000;
+  background: #6441A5;
   transform: rotate(10deg) skewY(40deg);
   transform-origin: bottom right;
   transition: 1.5s ease;
@@ -422,6 +635,114 @@ const toggleMode = () => {
   transition-delay: 1.2s;
 }
 
+/* Toast & Modal Styles */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.toast {
+  padding: 15px 25px;
+  border-radius: 8px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideIn 0.3s ease forwards;
+}
+
+.toast.success {
+  background: linear-gradient(45deg, #6441A5, #2a0845);
+}
+
+.toast.error {
+  background: linear-gradient(45deg, #ff416c, #ff4b2b);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  animation: modalIn 0.3s ease;
+}
+
+/* Checkbox & Error Styles */
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  cursor: pointer;
+  margin: 15px 0;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #6441A5;
+  border-radius: 4px;
+  position: relative;
+  transition: 0.3s ease;
+}
+
+.remember-me input:checked ~ .checkmark {
+  background: #6441A5;
+}
+
+.remember-me input:checked ~ .checkmark::after {
+  content: '\2714';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+}
+
+.error-message {
+  font-size: 12px;
+  color: #ff416c;
+  margin-top: 5px;
+  animation: shake 0.5s ease;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Responsive Design */
 @media (max-width: 1024px) {
   .wrapper {
     width: 90%;
@@ -459,6 +780,11 @@ const toggleMode = () => {
     width: 100%;
     height: 100%;
     animation: none;
+  }
+
+  .modal {
+    width: 95%;
+    margin: 10px;
   }
 }
 </style>

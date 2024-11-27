@@ -1,57 +1,82 @@
 import { defineStore } from 'pinia';
 import { tmdbApi } from '../services/tmdb';
-import type { Movie } from '../types/tmdb';
+import type { Movie, Genre } from '../types/tmdb';
 
 interface MovieState {
-  popularMovies: Movie[];
-  nowPlayingMovies: Movie[];
-  featuredMovie: Movie | null;
-  wishlisted: number[];
-  loading: boolean;
+ popularMovies: Movie[];
+ nowPlayingMovies: Movie[];
+ topRatedMovies: Movie[];
+ upcomingMovies: Movie[];
+ featuredMovie: Movie | null;
+ wishlisted: number[];
+ genres: Genre[];
+ loading: boolean;
 }
 
 export const useMovieStore = defineStore('movie', {
-  state: (): MovieState => ({
-    popularMovies: [],
-    nowPlayingMovies: [],
-    featuredMovie: null,
-    wishlisted: JSON.parse(localStorage.getItem('wishlisted') || '[]'),
-    loading: false
-  }),
+ state: (): MovieState => ({
+   popularMovies: [],
+   nowPlayingMovies: [],
+   topRatedMovies: [],
+   upcomingMovies: [],
+   featuredMovie: null,
+   wishlisted: JSON.parse(localStorage.getItem('wishlisted') || '[]'),
+   genres: [],
+   loading: false
+ }),
 
-  getters: {
-    isWishlisted: (state) => (movieId: number) => {
-      return state.wishlisted.includes(movieId);
-    }
-  },
+ getters: {
+   isWishlisted: (state) => (movieId: number) => {
+     return state.wishlisted.includes(movieId);
+   }
+ },
 
-  actions: {
-    async loadMovies() {
-      this.loading = true;
-      try {
-        const [popularResponse, nowPlayingResponse] = await Promise.all([
-          tmdbApi.getPopularMovies(),
-          tmdbApi.getNowPlaying()
-        ]);
-        
-        this.popularMovies = popularResponse.data.results;
-        this.nowPlayingMovies = nowPlayingResponse.data.results;
-        this.featuredMovie = this.popularMovies[0];
-      } catch (error) {
-        console.error('Failed to load movies:', error);
-      } finally {
-        this.loading = false;
-      }
-    },
+ actions: {
+   async loadMovies() {
+     this.loading = true;
+     try {
+       // 모든 API 요청을 동시에 실행
+       const [popularRes, nowPlayingRes, topRatedRes, upcomingRes] = await Promise.all([
+         tmdbApi.getPopularMovies(),
+         tmdbApi.getNowPlaying(),
+         tmdbApi.getTopRated(),
+         tmdbApi.getUpcoming()
+       ]);
 
-    toggleWishlist(movieId: number) {
-      const index = this.wishlisted.indexOf(movieId);
-      if (index === -1) {
-        this.wishlisted.push(movieId);
-      } else {
-        this.wishlisted.splice(index, 1);
-      }
-      localStorage.setItem('wishlisted', JSON.stringify(this.wishlisted));
-    }
-  }
+       // 결과 저장
+       this.popularMovies = popularRes.data.results;
+       this.nowPlayingMovies = nowPlayingRes.data.results;
+       this.topRatedMovies = topRatedRes.data.results;
+       this.upcomingMovies = upcomingRes.data.results;
+
+       // 인기 영화 중 랜덤하게 하나를 featured로 선택
+       const randomIndex = Math.floor(Math.random() * this.popularMovies.length);
+       this.featuredMovie = this.popularMovies[randomIndex];
+
+     } catch (error) {
+       console.error('Failed to load movies:', error);
+     } finally {
+       this.loading = false;
+     }
+   },
+
+   async loadGenres() {
+     try {
+       const response = await tmdbApi.getGenres();
+       this.genres = response.data.genres;
+     } catch (error) {
+       console.error('Failed to load genres:', error);
+     }
+   },
+
+   toggleWishlist(movieId: number) {
+     const index = this.wishlisted.indexOf(movieId);
+     if (index === -1) {
+       this.wishlisted.push(movieId);
+     } else {
+       this.wishlisted.splice(index, 1);
+     }
+     localStorage.setItem('wishlisted', JSON.stringify(this.wishlisted));
+   }
+ }
 });

@@ -18,6 +18,14 @@ export const tmdbApi = {
   getNowPlaying: (page = 1) =>
     apiClient.get<MovieResponse>('/movie/now_playing', { params: { page } }),
 
+  // 평점 높은 영화 목록
+  getTopRated: (page = 1) =>
+    apiClient.get<MovieResponse>('/movie/top_rated', { params: { page } }),
+
+  // 개봉 예정작 목록
+  getUpcoming: (page = 1) =>
+    apiClient.get<MovieResponse>('/movie/upcoming', { params: { page } }),
+
   // 영화 검색
   searchMovies: (query: string, page = 1) =>
     apiClient.get<MovieResponse>('/search/movie', { params: { query, page } }),
@@ -30,6 +38,9 @@ export const tmdbApi = {
   getMovieDetails: (movieId: number) =>
     apiClient.get<Movie>(`/movie/${movieId}`),
 
+  // 영화 비디오 정보
+  getMovieVideos: (movieId: number) =>
+    apiClient.get(`/movie/${movieId}/videos`),
 
   // 이미지 URL 생성
   getImageUrl: (path: string | null, size: string = 'original'): string | null => {
