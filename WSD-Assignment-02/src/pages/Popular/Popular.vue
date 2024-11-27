@@ -342,7 +342,7 @@ watch(viewMode, () => {
   margin-right: calc(-50vw + 50%);
   padding: 20px max(4%, calc((100vw - 1920px) / 2));
   background: var(--background-light);
-  color: var(--text-light);
+  color: var(--text-dark);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -470,6 +470,9 @@ watch(viewMode, () => {
     rgba(0, 0, 0, 0.7) 50%,
     transparent 100%
   );
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
 }
 
 .movie-card:hover .movie-info {
@@ -567,7 +570,53 @@ tr:hover .poster-cell img {
 }
 
 /* Heart Icons & Wishlist Buttons */
-.heart-icon-btn,
+.heart-icon-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transform: translateY(-20px);
+  z-index: 10;
+}
+
+.movie-card:hover .movie-info {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Keep Heart Icon Visible if Active */
+.heart-icon-btn.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Heart Icon Hover Effects */
+.heart-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.heart-icon-btn:hover i {
+  transform: scale(1.2);
+  filter: drop-shadow(0 2px 4px rgba(255, 59, 124, 0.3));
+}
+
+.movie-card:hover .heart-icon-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .wishlist-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
@@ -606,15 +655,6 @@ tr:hover .poster-cell img {
   color: #ff3b7c;
 }
 
-.heart-icon-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  opacity: 0;
-  z-index: 10;
-}
-
-.movie-card:hover .heart-icon-btn,
 .heart-icon-btn.active {
   opacity: 1;
 }

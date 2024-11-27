@@ -1,3 +1,4 @@
+```vue
 <template>
   <div class="wishlist">
     <div class="wishlist-header">
@@ -42,54 +43,94 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import type { Movie } from '../../types/tmdb'
+import { ref, computed, onMounted, watch} from 'vue'
+import { useMovieStore } from '../../stores/movieStore'
 
+// 타입을 직접 정의
+interface Movie {
+ id: number
+ title: string
+ release_date: string
+ vote_average: number
+ poster_path: string | null
+}
+
+const movieStore = useMovieStore()
 const wishedMovies = ref<Movie[]>([])
 const sortBy = ref('date')
 
-// 이미지 URL 생성
+// 이미지 URL 생성 - Store의 메서드 사용
 const getImageUrl = (path: string | null) => {
-  if (!path) return '/default-movie-poster.jpg'
-  return `https://image.tmdb.org/t/p/w500${path}`
+ return movieStore.getImageUrl(path)
 }
 
 // 날짜 포맷
 const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('ko-KR')
+ return new Date(dateStr).toLocaleDateString('ko-KR')
 }
 
 // 정렬된 영화 목록
 const sortedMovies = computed(() => {
-  const movies = [...wishedMovies.value]
-  switch (sortBy.value) {
-    case 'title':
-      return movies.sort((a, b) => a.title.localeCompare(b.title))
-    case 'rating':
-      return movies.sort((a, b) => b.vote_average - a.vote_average)
-    default:
-      return movies // 찜한 순서 유지
-  }
+ const movies = [...wishedMovies.value]
+ switch (sortBy.value) {
+   case 'title':
+     return movies.sort((a, b) => a.title.localeCompare(b.title))
+   case 'rating':
+     return movies.sort((a, b) => b.vote_average - a.vote_average)
+   default:
+     return movies
+ }
 })
-
-// 찜한 영화 삭제
-const removeFromWishlist = (movieId: number) => {
-  const wishlistedMovies = JSON.parse(localStorage.getItem('wishlistedMovies') || '[]')
-  const newWishlistedMovies = wishlistedMovies.filter((movie: Movie) => movie.id !== movieId)
-  localStorage.setItem('wishlistedMovies', JSON.stringify(newWishlistedMovies))
-  wishedMovies.value = wishedMovies.value.filter(movie => movie.id !== movieId)
-}
 
 // 찜한 영화 데이터 로드
 const loadWishedMovies = () => {
-  const wishlistedMovies = JSON.parse(localStorage.getItem('wishlistedMovies') || '[]')
-  wishedMovies.value = wishlistedMovies
+ const wishlisted = JSON.parse(localStorage.getItem('wishlisted') || '[]')
+ 
+ // Store의 모든 영화 목록에서 찜한 영화 필터링
+ const allMovies = [
+   ...movieStore.popularMovies,
+   ...movieStore.nowPlayingMovies,
+   ...movieStore.topRatedMovies,
+   ...movieStore.upcomingMovies
+ ]
+ 
+ // 중복 제거
+ const uniqueMovies = Array.from(new Map(allMovies.map(movie => [movie.id, movie])).values())
+ 
+ // 찜한 영화만 필터링
+ wishedMovies.value = uniqueMovies.filter(movie => wishlisted.includes(movie.id))
 }
 
-onMounted(() => {
-  loadWishedMovies()
+// 찜한 영화 삭제
+const removeFromWishlist = (movieId: number) => {
+ const wishlisted = JSON.parse(localStorage.getItem('wishlisted') || '[]')
+ const newWishlisted = wishlisted.filter((id: number) => id !== movieId)
+ localStorage.setItem('wishlisted', JSON.stringify(newWishlisted))
+ wishedMovies.value = wishedMovies.value.filter(movie => movie.id !== movieId)
+}
+
+onMounted(async () => {
+  // Store에 데이터가 없는 경우에만 로드
+  if (!movieStore.popularMovies.length) {
+    await movieStore.loadMovies()  // loadMovies 완료될 때까지 대기
+  }
+  loadWishedMovies()  // 영화 데이터 로드 완료 후 실행
 })
+
+watch(
+  () => [
+    movieStore.popularMovies,
+    movieStore.nowPlayingMovies,
+    movieStore.topRatedMovies,
+    movieStore.upcomingMovies
+  ],
+  () => {
+    loadWishedMovies()
+  },
+  { deep: true }
+)
 </script>
+
 
 <style scoped>
 /* Base Styles */
@@ -252,6 +293,7 @@ onMounted(() => {
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.05);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease;
 }
 
 .movie-card:hover {
@@ -284,8 +326,14 @@ onMounted(() => {
     transparent 100%
   );
   color: white;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
+}
+
+.movie-card:hover .movie-info {
+  opacity: 1;
   transform: translateY(0);
-  transition: transform 0.3s ease;
 }
 
 .movie-info h3 {
@@ -293,6 +341,7 @@ onMounted(() => {
   margin-bottom: 0.5rem;
   line-height: 1.2;
 }
+
 
 .rating, .date {
   font-size: 0.9rem;
@@ -319,6 +368,18 @@ onMounted(() => {
 .remove-btn:hover {
   background: #e50914;
   transform: translateY(-2px);
+}
+
+.poster-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.poster-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Media Queries */
@@ -388,3 +449,4 @@ onMounted(() => {
   }
 }
 </style>
+```

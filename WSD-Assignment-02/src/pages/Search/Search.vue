@@ -812,20 +812,20 @@
   }
   
   .movie-card {
-    width: 100%;
-    height: 240px;
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.05);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  }
+  width: 100%;
+  height: 240px;
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
   
-  .movie-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  }
+.movie-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
   
   .poster-wrapper {
     position: relative;
@@ -854,6 +854,24 @@
     color: white;
   }
   
+  .movie-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9) 0%,
+    rgba(0, 0, 0, 0.7) 50%,
+    transparent 100%
+  );
+  color: white;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: all 0.3s ease;
+}
+  
   .movie-info h3 {
     font-size: 1rem;
     margin-bottom: 0.5rem;
@@ -861,21 +879,57 @@
   }
   
   .heart-icon {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    backdrop-filter: blur(4px);
-    color: white;
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  backdrop-filter: blur(4px);
+  color: #e50914;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(-20px);
+  z-index: 10;
+}
+
+/* 호버 시 효과 */
+.movie-card:hover .movie-info {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.movie-card:hover .heart-icon {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.heart-icon:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.heart-icon.active {
+  color: #e50914;
+  animation: heartPop 0.3s ease;
+}
+
+@keyframes heartPop {
+  0% {
+    transform: scale(1);
   }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
   
   /* Loading States */
   .loading-state, .empty-state {
