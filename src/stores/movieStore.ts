@@ -3,14 +3,15 @@ import { tmdbApi } from '../services/tmdb';
 import type { Movie, Genre } from '../types/tmdb';
 
 interface MovieState {
- popularMovies: Movie[];
- nowPlayingMovies: Movie[];
- topRatedMovies: Movie[];
- upcomingMovies: Movie[];
- featuredMovie: Movie | null;
- wishlisted: number[];
- genres: Genre[];
- loading: boolean;
+  popularMovies: Movie[];
+  nowPlayingMovies: Movie[];
+  topRatedMovies: Movie[];
+  upcomingMovies: Movie[];
+  additionalMovies: Movie[]; // 추가
+  featuredMovie: Movie | null;
+  wishlisted: number[];
+  genres: Genre[];
+  loading: boolean;
 }
 
 export const useMovieStore = defineStore('movie', {
@@ -19,6 +20,7 @@ export const useMovieStore = defineStore('movie', {
     nowPlayingMovies: [],
     topRatedMovies: [],
     upcomingMovies: [],
+    additionalMovies: [], // 추가
     featuredMovie: null,
     wishlisted: JSON.parse(localStorage.getItem('wishlisted') || '[]'),
     genres: [],
@@ -28,9 +30,24 @@ export const useMovieStore = defineStore('movie', {
   getters: {
     isWishlisted: (state) => (movieId: number) => {
       return state.wishlisted.includes(movieId);
+    },
+    // 찜한 영화 목록을 가져오는 getter 추가
+    getWishedMovies(): Movie[] {
+      const allMovies = [
+        ...this.popularMovies,
+        ...this.nowPlayingMovies,
+        ...this.topRatedMovies,
+        ...this.upcomingMovies,
+        ...this.additionalMovies
+      ]
+      
+      const uniqueMovies = Array.from(
+        new Map(allMovies.map(movie => [movie.id, movie])).values()
+      )
+      
+      return uniqueMovies.filter(movie => this.wishlisted.includes(movie.id))
     }
   },
-
   actions: {
     async loadMovies() {
       this.loading = true;
@@ -79,6 +96,17 @@ export const useMovieStore = defineStore('movie', {
     getImageUrl(path: string | null) {
       if (!path) return '/default-movie-poster.jpg'
       return `https://image.tmdb.org/t/p/w500${path}`
+    },
+    
+    addMovies(newMovies: Movie[]) {
+      // 중복 제거를 위해 Map 사용
+      const existingMovies = new Map(this.additionalMovies.map(movie => [movie.id, movie]));
+      newMovies.forEach(movie => {
+        if (!existingMovies.has(movie.id)) {
+          existingMovies.set(movie.id, movie);
+        }
+      });
+      this.additionalMovies = Array.from(existingMovies.values());
     }
   }
 });
