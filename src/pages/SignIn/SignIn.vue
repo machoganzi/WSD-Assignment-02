@@ -420,43 +420,69 @@ const toggleMode = () => {
   transition-delay: 1.2s;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 767px) {
   .wrapper {
     width: 90%;
-    height: 600px;
-  }
-  
-  .wrapper .form-box.login,
-  .wrapper .form-box.signup {
-    padding: 0 40px;
-  }
-}
-
-@media (max-width: 768px) {
-  .wrapper {
-    width: 100%;
-    height: 100vh;
-    border-radius: 0;
+    height: auto;
+    padding: 40px 20px;
   }
 
   .wrapper .form-box {
+    position: relative;
     width: 100%;
-    padding: 0 20px;
+    padding: 0;
+  }
+
+  .wrapper .form-box.login,
+  .wrapper .form-box.signup {
+    left: 0;
+    right: 0;
+    padding: 0;
+  }
+
+  .form-box h2 {
+    font-size: 24px;
+  }
+
+  .input-box {
+    margin: 20px 0;
+  }
+
+  .input-box input {
+    font-size: 14px;
+    padding: 0 15px 0 5px;
+  }
+
+  .btn {
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .reg-link {
+    font-size: 12px;
   }
 
   .info-text {
-    display: none;
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 30px 20px;
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .info-text h2 {
+    font-size: 24px;
+    margin-bottom: 5px;
+  }
+
+  .info-text p {
+    font-size: 14px;
   }
 
   .bg-animate,
   .bg-animate2 {
     display: none;
-  }
-
-  .signin-container::before {
-    width: 100%;
-    height: 100%;
-    animation: none;
   }
 }
 </style>
