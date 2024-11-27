@@ -337,7 +337,7 @@ watch(viewMode, () => {
   margin-right: calc(-50vw + 50%);
   padding: 20px max(4%, calc((100vw - 1920px) / 2));
   background: var(--background-light);
-  color: var(--text-dark);
+  color: var(--text-light);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
