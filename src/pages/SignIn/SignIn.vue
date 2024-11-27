@@ -420,114 +420,43 @@ const toggleMode = () => {
   transition-delay: 1.2s;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .wrapper {
     width: 90%;
-    height: auto;
+    height: 600px;
+  }
+  
+  .wrapper .form-box.login,
+  .wrapper .form-box.signup {
+    padding: 0 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
   }
 
   .wrapper .form-box {
     width: 100%;
-    height: auto;
-    padding: 30px;
-  }
-
-  .wrapper .form-box h2 {
-    font-size: 28px;
-  }
-
-  .info-text h2 {
-    font-size: 24px;
-  }
-
-  .input-box input {
-    font-size: 14px;
-    padding: 0 20px 0 5px;
-  }
-
-  .btn {
-    font-size: 14px;
-  }
-
-  .reg-link {
-    font-size: 14px;
+    padding: 0 20px;
   }
 
   .info-text {
+    display: none;
+  }
+
+  .bg-animate,
+  .bg-animate2 {
+    display: none;
+  }
+
+  .signin-container::before {
     width: 100%;
-    padding: 20px;
-  }
-
-  .bg-animate, .bg-animate2 {
-    display: none; /* 모바일에서는 배경 애니메이션 숨김 */
-  }
-
-  /* 모바일에서 애니메이션 효과 약간 단순화 */
-  .animation {
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }
-
-  /* 로그인/회원가입 화면 전환 애니메이션 약간 수정 */
-  .wrapper.active .form-box.login .animation {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-
-  .wrapper.active .form-box.signup .animation {
-    transform: translateX(0);
-    opacity: 1;
-  }
-
-  .wrapper:not(.active) .form-box.signup .animation {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-
-  .wrapper.active .info-text.login {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-
-  .wrapper.active .info-text.signup {
-    transform: translateX(0);
-    opacity: 1;
+    height: 100%;
+    animation: none;
   }
 }
-
-@media (max-width: 480px) {
-  .wrapper {
-    width: 95%;
-    padding: 20px;
-  }
-
-  .wrapper .form-box {
-    padding: 20px;
-  }
-
-  .form-box h2 {
-    font-size: 24px;
-  }
-
-  .input-box input {
-    font-size: 14px;
-  }
-
-  .btn {
-    font-size: 14px;
-  }
-
-  .info-text h2 {
-    font-size: 20px;
-  }
-
-  .info-text p {
-    font-size: 14px;
-  }
-
-  .reg-link a {
-    font-size: 13px;
-  }
-}
-
-
 </style>
