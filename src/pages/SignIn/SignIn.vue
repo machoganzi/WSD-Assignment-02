@@ -419,7 +419,7 @@ const toggleMode = () => {
   transform: rotate(-11deg) skewY(-41deg);
   transition-delay: 1.2s;
 }
-/* 반응형 디자인 */
+
 @media (max-width: 768px) {
   .wrapper {
     width: 90%;
@@ -461,6 +461,37 @@ const toggleMode = () => {
   .bg-animate, .bg-animate2 {
     display: none; /* 모바일에서는 배경 애니메이션 숨김 */
   }
+
+  /* 모바일에서 애니메이션 효과 약간 단순화 */
+  .animation {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  /* 로그인/회원가입 화면 전환 애니메이션 약간 수정 */
+  .wrapper.active .form-box.login .animation {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+
+  .wrapper.active .form-box.signup .animation {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  .wrapper:not(.active) .form-box.signup .animation {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  .wrapper.active .info-text.login {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  .wrapper.active .info-text.signup {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @media (max-width: 480px) {
@@ -497,5 +528,6 @@ const toggleMode = () => {
     font-size: 13px;
   }
 }
+
 
 </style>
