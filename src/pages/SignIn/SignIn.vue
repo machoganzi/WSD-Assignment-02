@@ -419,34 +419,58 @@ const toggleMode = () => {
   transform: rotate(-11deg) skewY(-41deg);
   transition-delay: 1.2s;
 }
-
-@media (max-width: 1024px) {
-  .wrapper {
-    width: 90%;
-    height: 600px;
-  }
-  
-  .wrapper .form-box.login,
-  .wrapper .form-box.signup {
-    padding: 0 40px;
-  }
-}
-
+/* 반응형 디자인 */
 @media (max-width: 768px) {
   .wrapper {
-    width: 100%;
-    height: 100vh;
-    border-radius: 0;
+    width: 90%;
+    height: auto;
   }
 
   .wrapper .form-box {
     width: 100%;
-    padding: 0 20px;
+    height: auto;
+    padding: 30px;
   }
 
-  .signin-container::before {
+  .wrapper .form-box h2 {
+    font-size: 28px;
+  }
+
+  .info-text h2 {
+    font-size: 24px;
+  }
+
+  .input-box input {
+    font-size: 14px;
+    padding: 0 20px 0 5px;
+  }
+
+  .btn {
+    font-size: 14px;
+  }
+
+  .reg-link {
+    font-size: 14px;
+  }
+
+  .info-text {
     width: 100%;
-    height: 100%;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .wrapper .form-box {
+    padding: 20px;
+  }
+
+  .form-box h2 {
+    font-size: 24px;
   }
 
   .input-box input {
@@ -457,16 +481,17 @@ const toggleMode = () => {
     font-size: 14px;
   }
 
-  .reg-link {
-    font-size: 12px;
-  }
-
   .info-text h2 {
-    font-size: 28px;
+    font-size: 20px;
   }
 
   .info-text p {
     font-size: 14px;
   }
+
+  .reg-link a {
+    font-size: 13px;
+  }
 }
+
 </style>
