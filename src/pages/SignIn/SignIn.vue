@@ -457,6 +457,10 @@ const toggleMode = () => {
     width: 100%;
     padding: 20px;
   }
+
+  .bg-animate, .bg-animate2 {
+    display: none; /* 모바일에서는 배경 애니메이션 숨김 */
+  }
 }
 
 @media (max-width: 480px) {
