@@ -444,19 +444,29 @@ const toggleMode = () => {
     padding: 0 20px;
   }
 
-  .info-text {
-    display: none;
-  }
-
-  .bg-animate,
-  .bg-animate2 {
-    display: none;
-  }
-
   .signin-container::before {
     width: 100%;
     height: 100%;
-    animation: none;
+  }
+
+  .input-box input {
+    font-size: 14px;
+  }
+
+  .btn {
+    font-size: 14px;
+  }
+
+  .reg-link {
+    font-size: 12px;
+  }
+
+  .info-text h2 {
+    font-size: 28px;
+  }
+
+  .info-text p {
+    font-size: 14px;
   }
 }
 </style>
