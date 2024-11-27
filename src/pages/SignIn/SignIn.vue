@@ -110,7 +110,7 @@ const handleSignIn = async () => {
     }
 
     // 2. API 키 유효성 검증
-    await tmdbApi.getPopularMovies(1, loginForm.password)
+    await tmdbApi.validateApiKey(loginForm.password)
     
     // 3. 로그인 처리
     localStorage.setItem('TMDb-Key', loginForm.password)
@@ -133,7 +133,7 @@ const handleSignUp = async () => {
     }
 
     // 2. API 키 유효성 검증
-    await tmdbApi.getPopularMovies(1, signupForm.password)
+    await tmdbApi.validateApiKey(loginForm.password)
     
     // 3. 사용자 등록
     users.push({
