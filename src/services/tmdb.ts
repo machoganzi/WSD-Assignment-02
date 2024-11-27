@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Movie ,MovieResponse, GenreResponse } from '../types/tmdb'
+import type { Movie, MovieResponse, GenreResponse } from '../types/tmdb'
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_TMDB_BASE_URL,
@@ -10,6 +10,16 @@ const apiClient = axios.create({
 })
 
 export const tmdbApi = {
+  // API 키 검증
+  validateApiKey: (apiKey: string) => 
+    axios.get<MovieResponse>(`${import.meta.env.VITE_TMDB_BASE_URL}/movie/popular`, {
+      params: {
+        api_key: apiKey,
+        language: 'ko-KR',
+        page: 1
+      }
+    }),
+
   // 인기 영화 목록
   getPopularMovies: (page = 1) => 
     apiClient.get<MovieResponse>('/movie/popular', { params: { page } }),
@@ -18,7 +28,7 @@ export const tmdbApi = {
   getNowPlaying: (page = 1) =>
     apiClient.get<MovieResponse>('/movie/now_playing', { params: { page } }),
 
-  // 평점 높은 영화 목록
+  // 평점 높은 영화 목록  
   getTopRated: (page = 1) =>
     apiClient.get<MovieResponse>('/movie/top_rated', { params: { page } }),
 
@@ -30,7 +40,7 @@ export const tmdbApi = {
   searchMovies: (query: string, page = 1) =>
     apiClient.get<MovieResponse>('/search/movie', { params: { query, page } }),
 
-  // 장르 목록
+  // 장르 목록 
   getGenres: () =>
     apiClient.get<GenreResponse>('/genre/movie/list'),
 
@@ -38,14 +48,14 @@ export const tmdbApi = {
   getMovieDetails: (movieId: number) =>
     apiClient.get<Movie>(`/movie/${movieId}`),
 
-  // 영화 비디오 정보
+  // 영화 비디오 정보  
   getMovieVideos: (movieId: number) =>
     apiClient.get(`/movie/${movieId}/videos`),
 
   // 이미지 URL 생성
   getImageUrl: (path: string | null, size: string = 'original'): string => {
-    if (!path) return '/default-movie-poster.jpg'; // 기본 이미지 경로 반환
-    return `${import.meta.env.VITE_TMDB_IMAGE_BASE_URL}/${size}${path}`;
+    if (!path) return '/default-movie-poster.jpg'
+    return `${import.meta.env.VITE_TMDB_IMAGE_BASE_URL}/${size}${path}`
   }
 }
 

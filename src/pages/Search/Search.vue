@@ -136,7 +136,6 @@
           v-for="movie in filteredMovies" 
           :key="movie.id" 
           class="movie-card"
-          @click="(event) => toggleWishlist(movie)"
         >
           <div class="poster-wrapper">
             <img :src="getImageUrl(movie.poster_path)" :alt="movie.title">
