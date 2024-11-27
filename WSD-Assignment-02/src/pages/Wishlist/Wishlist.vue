@@ -1,4 +1,3 @@
-```vue
 <template>
   <div class="wishlist">
     <div class="wishlist-header">
@@ -44,7 +43,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { tmdbApi } from '../../services/tmdb'
 import type { Movie } from '../../types/tmdb'
 
 const wishedMovies = ref<Movie[]>([])
@@ -52,7 +50,8 @@ const sortBy = ref('date')
 
 // 이미지 URL 생성
 const getImageUrl = (path: string | null) => {
-  return tmdbApi.getImageUrl(path, 'w500')
+  if (!path) return '/default-movie-poster.jpg'
+  return `https://image.tmdb.org/t/p/w500${path}`
 }
 
 // 날짜 포맷
@@ -75,27 +74,16 @@ const sortedMovies = computed(() => {
 
 // 찜한 영화 삭제
 const removeFromWishlist = (movieId: number) => {
-  const wishlisted = JSON.parse(localStorage.getItem('wishlisted') || '[]')
-  const newWishlisted = wishlisted.filter((id: number) => id !== movieId)
-  localStorage.setItem('wishlisted', JSON.stringify(newWishlisted))
+  const wishlistedMovies = JSON.parse(localStorage.getItem('wishlistedMovies') || '[]')
+  const newWishlistedMovies = wishlistedMovies.filter((movie: Movie) => movie.id !== movieId)
+  localStorage.setItem('wishlistedMovies', JSON.stringify(newWishlistedMovies))
   wishedMovies.value = wishedMovies.value.filter(movie => movie.id !== movieId)
 }
 
 // 찜한 영화 데이터 로드
-const loadWishedMovies = async () => {
-  const wishlisted = JSON.parse(localStorage.getItem('wishlisted') || '[]')
-  const movies: Movie[] = []
-
-  for (const movieId of wishlisted) {
-    try {
-      const response = await tmdbApi.getMovieDetails(movieId)
-      movies.push(response.data)
-    } catch (error) {
-      console.error(`Failed to load movie ${movieId}:`, error)
-    }
-  }
-
-  wishedMovies.value = movies
+const loadWishedMovies = () => {
+  const wishlistedMovies = JSON.parse(localStorage.getItem('wishlistedMovies') || '[]')
+  wishedMovies.value = wishlistedMovies
 }
 
 onMounted(() => {
@@ -400,4 +388,3 @@ onMounted(() => {
   }
 }
 </style>
-```
