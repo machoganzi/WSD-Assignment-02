@@ -87,7 +87,7 @@
         <tbody>
           <tr v-for="movie in movies" :key="movie.id">
             <td class="poster-cell">
-              <img :src="getImageUrl(movie.poster_path ?? null)" :alt="movie.title">
+              <img :src="getImageUrl(movie.poster_path)" :alt="movie.title">
             </td>
             <td class="title-cell">{{ movie.title }}</td>
             <td>{{ formatDate(movie.release_date) }}</td>
