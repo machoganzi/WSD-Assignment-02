@@ -117,7 +117,7 @@ const handleSignIn = async () => {
     localStorage.setItem('userId', loginForm.username)
     localStorage.setItem('isAuthenticated', 'true')
     
-    window.location.href = '/'
+    window.location.href = '/WSD-Assignment-02/'
   } catch (error) {
     alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
   }
@@ -132,10 +132,7 @@ const handleSignUp = async () => {
       return
     }
 
-    // 2. API 키 유효성 검증
-    await tmdbApi.validateApiKey(loginForm.password)
-    
-    // 3. 사용자 등록
+    // 2. 사용자 등록
     users.push({
       username: signupForm.username,
       email: signupForm.email,
@@ -143,7 +140,7 @@ const handleSignUp = async () => {
     })
     saveUsers(users)
 
-    // 4. 자동 로그인 처리
+    // 3. 자동 로그인 처리
     localStorage.setItem('TMDb-Key', signupForm.password)
     localStorage.setItem('userId', signupForm.username)
     localStorage.setItem('isAuthenticated', 'true')
