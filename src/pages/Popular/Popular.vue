@@ -28,7 +28,7 @@
           class="movie-card"
         >
           <div class="poster-wrapper">
-            <img :src="getImageUrl(movie.poster_path)" :alt="movie.title">
+            <img :src="getImageUrl(movie.poster_path ?? null)" :alt="movie.title">
             <div class="movie-info">
               <h3>{{ movie.title }}</h3>
               <div class="movie-details">
@@ -87,7 +87,7 @@
         <tbody>
           <tr v-for="movie in movies" :key="movie.id">
             <td class="poster-cell">
-              <img :src="getImageUrl(movie.poster_path)" :alt="movie.title">
+              <img :src="getImageUrl(movie.poster_path ?? null)" :alt="movie.title">
             </td>
             <td class="title-cell">{{ movie.title }}</td>
             <td>{{ formatDate(movie.release_date) }}</td>
@@ -244,11 +244,6 @@ const handleScroll = async () => {
       await loadMovies(currentPage.value + 1, true)
     }
   }
-}
-
-// 스크롤 탑 버튼 표시/숨김
-const updateScrollTopVisibility = (container: HTMLElement) => {
- showScrollTop.value = container.scrollTop > 200
 }
 
 // 맨 위로 스크롤
