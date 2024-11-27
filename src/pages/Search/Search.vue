@@ -110,7 +110,7 @@
       </div>
  
       <div class="filter-actions">
-        <button class="reset-btn" @click="(e) => resetFilters()">
+        <button class="reset-btn" @click="() => resetFilters()">
           <i class="fas fa-undo"></i> 초기화
         </button>
         <button class="apply-btn" @click="applyFilters">
@@ -136,7 +136,7 @@
           v-for="movie in filteredMovies" 
           :key="movie.id" 
           class="movie-card"
-          @click="toggleWishlist(movie)"
+          @click="(event) => toggleWishlist(movie)"
         >
           <div class="poster-wrapper">
             <img :src="getImageUrl(movie.poster_path)" :alt="movie.title">
