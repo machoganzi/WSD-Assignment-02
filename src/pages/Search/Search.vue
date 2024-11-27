@@ -110,7 +110,7 @@
       </div>
  
       <div class="filter-actions">
-        <button class="reset-btn" @click="resetFilters">
+        <button class="reset-btn" @click="(e) => resetFilters()">
           <i class="fas fa-undo"></i> 초기화
         </button>
         <button class="apply-btn" @click="applyFilters">
