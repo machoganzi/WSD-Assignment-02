@@ -68,10 +68,8 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
 import { tmdbApi } from '../../services/tmdb'
 
-const router = useRouter()
 const isSignUpMode = ref(false)
 
 const loginForm = reactive({
