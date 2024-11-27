@@ -1,38 +1,20 @@
 <template>
   <div :class="['home', { 'dark-mode': themeStore.isDarkMode }]">
-    <!-- Loading Overlay with improved animation -->
+    <!-- Loading Overlay -->
     <div v-if="movieStore.loading" class="loading-overlay">
-      <div class="loader-container">
-        <div class="loader"></div>
-        <p>Loading amazing movies...</p>
-      </div>
+      <div class="loader"></div>
     </div>
 
-    <!-- Enhanced Hero Section -->
+    <!-- Hero Section -->
     <section v-if="movieStore.featuredMovie" class="hero" :style="heroStyle">
-      <div class="hero-content animation-slide-up">
-        <div class="tags">
-          <span v-for="genre in getFeaturedMovieGenres" :key="genre" class="tag">
-            {{ genre }}
-          </span>
-        </div>
+      <div class="hero-content">
         <h1>{{ movieStore.featuredMovie.title }}</h1>
-        <div class="meta">
-          <span class="release-date">
-            <i class="fas fa-calendar"></i>
-            {{ formatDate(movieStore.featuredMovie.release_date) }}
-          </span>
-          <span class="rating">
-            <i class="fas fa-star"></i>
-            {{ movieStore.featuredMovie.vote_average.toFixed(1) }}
-          </span>
-        </div>
         <p class="overview">{{ movieStore.featuredMovie.overview }}</p>
         <div class="hero-buttons">
-          <button class="btn play-btn" @click="openTrailer(movieStore.featuredMovie.id)">
-            <i class="fas fa-play"></i> 예고편
+          <button class="btn play-btn">
+            <i class="fas fa-play"></i> 재생
           </button>
-          <button class="btn more-btn" @click="openMovieDetail(movieStore.featuredMovie)">
+          <button class="btn more-btn">
             <i class="fas fa-info-circle"></i> 상세 정보
           </button>
         </div>
@@ -40,105 +22,109 @@
       <div class="hero-shadow"></div>
     </section>
 
-    <!-- Movie Sections -->
-    <div class="movie-sections">
-      <!-- Popular Movies -->
-      <MovieSection
-        title="인기 영화"
-        :movies="movieStore.popularMovies"
-        @slide="handleSlide('popular', $event)"
-        :sliderState="sliderStates.popular"
-        ref="popularSlider"
-      />
-
-      <!-- Top Rated Movies -->
-      <MovieSection
-        title="최고 평점"
-        :movies="movieStore.topRatedMovies"
-        @slide="handleSlide('topRated', $event)"
-        :sliderState="sliderStates.topRated"
-        ref="topRatedSlider"
-      />
-
-      <!-- Upcoming Movies -->
-      <MovieSection
-        title="개봉 예정"
-        :movies="movieStore.upcomingMovies"
-        @slide="handleSlide('upcoming', $event)"
-        :sliderState="sliderStates.upcoming"
-        ref="upcomingSlider"
-      />
-
-      <!-- Now Playing -->
-      <MovieSection
-        title="현재 상영작"
-        :movies="movieStore.nowPlayingMovies"
-        @slide="handleSlide('nowPlaying', $event)"
-        :sliderState="sliderStates.nowPlaying"
-        ref="nowPlayingSlider"
-      />
-    </div>
-
-    <!-- Movie Detail Modal -->
-    <Teleport to="body">
-      <div v-if="selectedMovie" class="modal-overlay" @click="closeMovieDetail">
-        <div class="modal-content" @click.stop>
-          <button class="modal-close" @click="closeMovieDetail">
-            <i class="fas fa-times"></i>
-          </button>
-          <div class="modal-grid">
-            <div class="modal-poster">
-              <img :src="getImageUrl(selectedMovie.poster_path, 'w500')" :alt="selectedMovie.title">
-            </div>
-            <div class="modal-info">
-              <h2>{{ selectedMovie.title }}</h2>
-              <div class="modal-meta">
-                <span class="modal-release">
-                  <i class="fas fa-calendar"></i>
-                  {{ formatDate(selectedMovie.release_date) }}
-                </span>
-                <span class="modal-rating">
-                  <i class="fas fa-star"></i>
-                  {{ selectedMovie.vote_average.toFixed(1) }}
-                </span>
-                <span class="modal-genres">
-                  <i class="fas fa-film"></i>
-                  {{ getMovieGenres(selectedMovie).join(', ') }}
-                </span>
-              </div>
-              <p class="modal-overview">{{ selectedMovie.overview }}</p>
-              <div class="modal-actions">
-                <button 
-                  class="wishlist-btn"
-                  :class="{ 'active': movieStore.isWishlisted(selectedMovie.id) }"
-                  @click="movieStore.toggleWishlist(selectedMovie.id)"
+    <!-- Popular Movies Section -->
+    <section class="movie-section">
+      <h2>인기 영화</h2>
+      <div class="movie-slider">
+        <button 
+          class="slider-btn prev" 
+          @click="() => handleSlide('popular', 'prev')"
+          v-show="shouldShowNavButton('popular', 'prev')"
+          aria-label="이전 영화"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="movie-list" ref="popularSlider">
+          <div 
+            class="movie-track"
+            :style="getSliderPosition('popular')"
+          >
+            <div 
+              v-for="movie in movieStore.popularMovies" 
+              :key="movie.id" 
+              class="movie-card"
+              @click="movieStore.toggleWishlist(movie.id)"
+            >
+              <div class="poster-wrapper">
+                <img 
+                  :src="getImageUrl(movie.poster_path)" 
+                  :alt="movie.title"
+                  loading="lazy"
                 >
-                  <i class="fas" :class="movieStore.isWishlisted(selectedMovie.id) ? 'fa-heart' : 'fa-heart-o'"></i>
-                  {{ movieStore.isWishlisted(selectedMovie.id) ? '찜 취소' : '찜하기' }}
-                </button>
+                <div class="movie-info">
+                  <h3>{{ movie.title }}</h3>
+                  <p>⭐ {{ movie.vote_average.toFixed(1) }}</p>
+                  <i class="fas heart-icon"
+                     :class="movieStore.isWishlisted(movie.id) ? 'fa-heart' : 'fa-heart-o'"
+                     :aria-label="movieStore.isWishlisted(movie.id) ? '찜하기 취소' : '찜하기'"
+                  ></i>
+                </div>
               </div>
             </div>
           </div>
         </div>
+        <button 
+          class="slider-btn next" 
+          @click="() => handleSlide('popular', 'next')"
+          v-show="shouldShowNavButton('popular', 'next')"
+          aria-label="다음 영화"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
-    </Teleport>
+    </section>
 
-    <!-- Trailer Modal -->
-    <Teleport to="body">
-      <div v-if="trailerUrl" class="modal-overlay" @click="closeTrailer">
-        <div class="trailer-modal" @click.stop>
-          <button class="modal-close" @click="closeTrailer">
-            <i class="fas fa-times"></i>
-          </button>
-          <iframe
-            :src="trailerUrl"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          ></iframe>
+    <!-- Now Playing Section -->
+    <section class="movie-section">
+      <h2>현재 상영작</h2>
+      <div class="movie-slider">
+        <button 
+          class="slider-btn prev" 
+          @click="() => handleSlide('nowPlaying', 'prev')"
+          v-show="shouldShowNavButton('nowPlaying', 'prev')"
+          aria-label="이전 영화"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="movie-list" ref="nowPlayingSlider">
+          <div 
+            class="movie-track"
+            :style="getSliderPosition('nowPlaying')"
+          >
+            <div 
+              v-for="movie in movieStore.nowPlayingMovies" 
+              :key="movie.id" 
+              class="movie-card"
+              @click="movieStore.toggleWishlist(movie.id)"
+            >
+              <div class="poster-wrapper">
+                <img 
+                  :src="getImageUrl(movie.poster_path)" 
+                  :alt="movie.title"
+                  loading="lazy"
+                >
+                <div class="movie-info">
+                  <h3>{{ movie.title }}</h3>
+                  <p>⭐ {{ movie.vote_average.toFixed(1) }}</p>
+                  <i class="fas heart-icon"
+                     :class="movieStore.isWishlisted(movie.id) ? 'fa-heart' : 'fa-heart-o'"
+                     :aria-label="movieStore.isWishlisted(movie.id) ? '찜하기 취소' : '찜하기'"
+                  ></i>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+        <button 
+          class="slider-btn next" 
+          @click="() => handleSlide('nowPlaying', 'next')"
+          v-show="shouldShowNavButton('nowPlaying', 'next')"
+          aria-label="다음 영화"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
-    </Teleport>
+    </section>
   </div>
 </template>
 
@@ -148,16 +134,10 @@ import { useThemeStore } from '@/stores/themeStore';
 import { useMovieStore } from '@/stores/movieStore';
 import { tmdbApi } from '@/services/tmdb';
 import { debounce } from 'lodash';
-import MovieSection from '@/components/movie/MovieSection.vue';
 
 const themeStore = useThemeStore();
 const movieStore = useMovieStore();
 
-// State
-const selectedMovie = ref(null);
-const trailerUrl = ref('');
-
-// Slider States
 interface SliderState {
   currentSlide: number;
   slideWidth: number;
@@ -166,104 +146,87 @@ interface SliderState {
 }
 
 const sliderStates = reactive({
-  popular: { currentSlide: 0, slideWidth: 0, maxSlide: 0, itemsPerSlide: 0 } as SliderState,
-  topRated: { currentSlide: 0, slideWidth: 0, maxSlide: 0, itemsPerSlide: 0 } as SliderState,
-  upcoming: { currentSlide: 0, slideWidth: 0, maxSlide: 0, itemsPerSlide: 0 } as SliderState,
-  nowPlaying: { currentSlide: 0, slideWidth: 0, maxSlide: 0, itemsPerSlide: 0 } as SliderState
+  popular: {
+    currentSlide: 0,
+    slideWidth: 0,
+    maxSlide: 0,
+    itemsPerSlide: 0
+  } as SliderState,
+  nowPlaying: {
+    currentSlide: 0,
+    slideWidth: 0,
+    maxSlide: 0,
+    itemsPerSlide: 0
+  } as SliderState
 });
 
-// Refs for slider components
-const sliderRefs = {
-  popularSlider: ref(null),
-  topRatedSlider: ref(null),
-  upcomingSlider: ref(null),
-  nowPlayingSlider: ref(null)
-};
+const popularSlider = ref<HTMLElement | null>(null);
+const nowPlayingSlider = ref<HTMLElement | null>(null);
 
-// Computed
+// Hero Background Style
 const heroStyle = computed(() => {
   if (movieStore.featuredMovie?.backdrop_path) {
     return {
-      backgroundImage: `url(${getImageUrl(movieStore.featuredMovie.backdrop_path, 'original')})`
+      backgroundImage: `url(${tmdbApi.getImageUrl(movieStore.featuredMovie.backdrop_path, 'original')})`
     };
   }
   return {};
 });
 
-const getFeaturedMovieGenres = computed(() => {
-  if (!movieStore.featuredMovie) return [];
-  return getMovieGenres(movieStore.featuredMovie);
-});
-
-// Methods
-const getImageUrl = (path: string, size: string = 'w500') => {
-  return tmdbApi.getImageUrl(path, size);
+// Image URL Helper
+const getImageUrl = (path: string | null) => {
+  return tmdbApi.getImageUrl(path, 'w500');
 };
 
-const formatDate = (dateStr: string) => {
-  return new Date(dateStr).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
+// 슬라이더 위치 계산
+const getSliderPosition = (type: 'popular' | 'nowPlaying') => {
+  const state = sliderStates[type];
+  const movies = type === 'popular' ? movieStore.popularMovies : movieStore.nowPlayingMovies;
+  const cardWidth = 260; // Fixed card width
+  const gap = 16; // Gap between cards
 
-const getMovieGenres = (movie: any) => {
-  return movie.genre_ids.map((id: number) => 
-    movieStore.genres.find(g => g.id === id)?.name || ''
-  ).filter(Boolean);
-};
-
-const openMovieDetail = async (movie: any) => {
-  selectedMovie.value = movie;
-  document.body.style.overflow = 'hidden';
+  // 현재 보여지는 영화들의 시작 인덱스
+  const startIndex = state.currentSlide * state.itemsPerSlide;
   
-  // Load additional movie details if needed
-  try {
-    const details = await tmdbApi.getMovieDetails(movie.id);
-    selectedMovie.value = { ...movie, ...details };
-  } catch (error) {
-    console.error('Error loading movie details:', error);
+  // 이동할 거리 계산
+  const moveDistance = startIndex * (cardWidth + gap);
+  
+  return {
+    transform: `translateX(-${moveDistance}px)`,
+    transition: 'transform 0.3s ease-in-out'
+  };
+};
+
+// 네비게이션 버튼 표시 여부
+const shouldShowNavButton = (type: 'popular' | 'nowPlaying', direction: 'prev' | 'next') => {
+  const state = sliderStates[type];
+  const movies = type === 'popular' ? movieStore.popularMovies : movieStore.nowPlayingMovies;
+  
+  if (direction === 'prev') {
+    return state.currentSlide > 0;
   }
-};
-
-const closeMovieDetail = () => {
-  selectedMovie.value = null;
-  document.body.style.overflow = '';
-};
-
-const openTrailer = async (movieId: number) => {
-  try {
-    const videos = await tmdbApi.getMovieVideos(movieId);
-    const trailer = videos.results.find(
-      (v: any) => v.type === 'Trailer' && v.site === 'YouTube'
-    );
-    
-    if (trailer) {
-      trailerUrl.value = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
-      document.body.style.overflow = 'hidden';
-    }
-  } catch (error) {
-    console.error('Error loading trailer:', error);
-  }
-};
-
-const closeTrailer = () => {
-  trailerUrl.value = '';
-  document.body.style.overflow = '';
+  
+  // 현재 보여지는 영화들의 시작 인덱스
+  const startIndex = state.currentSlide * state.itemsPerSlide;
+  // 남은 영화 수
+  const remainingMovies = movies.length - startIndex;
+  
+  return remainingMovies > state.itemsPerSlide;
 };
 
 // Slider Logic
-const calculateSliderMetrics = (type: keyof typeof sliderStates) => {
-  const slider = sliderRefs[`${type}Slider`].value;
+const calculateSliderMetrics = (type: 'popular' | 'nowPlaying') => {
+  const slider = type === 'popular' ? popularSlider.value : nowPlayingSlider.value;
   if (!slider) return;
 
-  const containerWidth = slider.$el.clientWidth;
-  const cardWidth = 280; // Card width + gap
-  const itemsPerSlide = Math.floor(containerWidth / cardWidth);
-  const movies = movieStore[`${type}Movies`];
-  const maxSlide = Math.ceil(movies.length / itemsPerSlide) - 1;
-
+  const containerWidth = slider.clientWidth;
+  const cardWidth = 260; // Fixed card width from CSS
+  const gap = 16; // Gap between cards from CSS
+  const itemsPerSlide = Math.floor(containerWidth / (cardWidth + gap));
+  
+  const movies = type === 'popular' ? movieStore.popularMovies : movieStore.nowPlayingMovies;
+  const maxSlide = Math.ceil(movies.length / itemsPerSlide);
+  
   sliderStates[type] = {
     ...sliderStates[type],
     slideWidth: containerWidth,
@@ -272,57 +235,64 @@ const calculateSliderMetrics = (type: keyof typeof sliderStates) => {
   };
 };
 
-const handleSlide = (type: keyof typeof sliderStates, direction: 'prev' | 'next') => {
+const handleSlide = (type: 'popular' | 'nowPlaying', direction: 'prev' | 'next') => {
   const state = sliderStates[type];
+  const movies = type === 'popular' ? movieStore.popularMovies : movieStore.nowPlayingMovies;
   
-  if (direction === 'next' && state.currentSlide < state.maxSlide) {
-    state.currentSlide++;
+  if (direction === 'next') {
+    const startIndex = state.currentSlide * state.itemsPerSlide;
+    const remainingMovies = movies.length - startIndex;
+    
+    if (remainingMovies > state.itemsPerSlide) {
+      state.currentSlide++;
+    }
   } else if (direction === 'prev' && state.currentSlide > 0) {
     state.currentSlide--;
   }
 };
 
+const handleWheel = (event: WheelEvent, type: 'popular' | 'nowPlaying') => {
+  event.preventDefault();
+  handleSlide(type, event.deltaY > 0 ? 'next' : 'prev');
+};
+
 // Resize handler
 const handleResize = debounce(() => {
-  Object.keys(sliderStates).forEach((type) => {
-    calculateSliderMetrics(type as keyof typeof sliderStates);
-  });
+  calculateSliderMetrics('popular');
+  calculateSliderMetrics('nowPlaying');
 }, 250);
 
-// Lifecycle hooks
-onMounted(async () => {
-  await movieStore.loadMovies();
-  await movieStore.loadGenres();
+// Event Listeners
+onMounted(() => {
+  movieStore.loadMovies();
   
   // Initialize sliders after movies are loaded
   setTimeout(() => {
-    Object.keys(sliderStates).forEach((type) => {
-      calculateSliderMetrics(type as keyof typeof sliderStates);
-    });
+    calculateSliderMetrics('popular');
+    calculateSliderMetrics('nowPlaying');
+    
+    if (popularSlider.value) {
+      popularSlider.value.addEventListener('wheel', (e) => handleWheel(e, 'popular'));
+    }
+    if (nowPlayingSlider.value) {
+      nowPlayingSlider.value.addEventListener('wheel', (e) => handleWheel(e, 'nowPlaying'));
+    }
     window.addEventListener('resize', handleResize);
   }, 100);
 });
 
 onUnmounted(() => {
+  if (popularSlider.value) {
+    popularSlider.value.removeEventListener('wheel', (e) => handleWheel(e, 'popular'));
+  }
+  if (nowPlayingSlider.value) {
+    nowPlayingSlider.value.removeEventListener('wheel', (e) => handleWheel(e, 'nowPlaying'));
+  }
   window.removeEventListener('resize', handleResize);
 });
 </script>
 
 <style scoped>
-:root {
-  --primary-color: #6441A5;
-  --primary-dark: #2a0845;
-  --primary-light: #9B6DFF;
-  --accent-color: #FF3B7C;
-  --accent-hover: #FF6B9C;
-  --background-light: #F8F7FF;
-  --background-dark: #13111C;
-  --glass-light: rgba(255, 255, 255, 0.1);
-  --glass-dark: rgba(0, 0, 0, 0.2);
-  --text-light: #2C2C2C;
-  --text-dark: #FFFFFF;
-}
-
 .home {
   min-height: 100vh;
   background: var(--background-light);
@@ -338,136 +308,113 @@ onUnmounted(() => {
   background: var(--background-dark);
 }
 
-/* Loading Overlay */
+.movie-track {
+  display: flex;
+  gap: 1rem;
+  transition: transform 0.3s ease;
+  width: fit-content;
+}
+
+.movie-list {
+  overflow: hidden;
+}
+
+/* Loading Styles */
 .loading-overlay {
   position: fixed;
-  inset: 0;
-  background: rgba(19, 17, 28, 0.8);
-  backdrop-filter: blur(10px);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-}
-
-.loader-container {
-  text-align: center;
+  backdrop-filter: blur(5px);
 }
 
 .loader {
-  width: 60px;
-  height: 60px;
-  border: 3px solid var(--glass-light);
+  width: 48px;
+  height: 48px;
+  border: 3px solid #fff;
   border-radius: 50%;
   display: inline-block;
   position: relative;
-  animation: rotation 1.5s linear infinite;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
 }
 
 .loader::after {
-  content: '';
+  content: '';  
+  box-sizing: border-box;
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 3px solid transparent;
-  border-bottom-color: var(--primary-light);
-}
-
-.loader-container p {
-  color: var(--text-dark);
-  margin-top: 1rem;
-  font-size: 1.1rem;
-  animation: pulse 1.5s infinite;
+  border-bottom-color: var(--primary-color);
 }
 
 /* Hero Section */
 .hero {
-  height: 90vh;
+  height: 80vh;
   background-size: cover;
   background-position: center;
   position: relative;
   display: flex;
   align-items: center;
-  padding: 0 4%;
-}
-
-.hero-content {
-  max-width: 800px;
-  z-index: 1;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: slideUp 0.8s ease forwards;
+  padding: 0;
+  width: 100%;
 }
 
 .hero-shadow {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(
     to bottom,
-    rgba(19, 17, 28, 0) 0%,
-    rgba(19, 17, 28, 0.8) 60%,
+    rgba(var(--background-dark-rgb), 0) 0%,
+    rgba(var(--background-dark-rgb), 0.8) 60%,
     var(--background-dark) 100%
   );
 }
 
-.tags {
-  display: flex;
-  gap: 0.8rem;
-  margin-bottom: 1.5rem;
-}
-
-.tag {
-  background: rgba(100, 65, 165, 0.3);
-  backdrop-filter: blur(4px);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  color: var(--text-dark);
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-}
-
-.tag:hover {
-  background: rgba(100, 65, 165, 0.5);
-  transform: translateY(-2px);
+.hero-content {
+  max-width: 600px;
+  z-index: 1;
+  padding: 0 4%;
 }
 
 .hero h1 {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   color: var(--text-dark);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  font-weight: 700;
-  line-height: 1.2;
+  transition: color 0.3s ease;
 }
 
-.meta {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
+.dark-mode .hero h1 {
   color: var(--text-dark);
-}
-
-.meta span {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.meta i {
-  color: var(--primary-light);
 }
 
 .overview {
-  font-size: 1.2rem;
-  line-height: 1.6;
-  color: var(--text-dark);
+  font-size: 1.1rem;
   margin-bottom: 2rem;
   opacity: 0.9;
-  max-width: 700px;
+  line-height: 1.6;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  color: var(--text-dark);
+  transition: color 0.3s ease;
+}
+
+.dark-mode .overview {
+  color: #f1f1f1;
 }
 
 .hero-buttons {
@@ -475,174 +422,327 @@ onUnmounted(() => {
   gap: 1rem;
 }
 
+/* Buttons */
 .btn {
-  padding: 1rem 2.5rem;
-  border-radius: 30px;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 8px;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 500;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  cursor: pointer;
+  gap: 0.5rem;
   transition: all 0.3s ease;
-  border: none;
-  position: relative;
-  overflow: hidden;
 }
 
 .play-btn {
-  background: var(--primary-color);
-  color: var(--text-dark);
+  background: #fff;
+  color: var(--text-light);
+  transition: all 0.3s ease;
+}
+
+.dark-mode .play-btn {
+  color: var(--background-dark);
 }
 
 .play-btn:hover {
-  background: var(--primary-dark);
+  background: rgba(255, 255, 255, 0.9);
   transform: translateY(-2px);
 }
 
 .more-btn {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: rgba(109, 109, 110, 0.7);
+  color: var(--text-dark);
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.dark-mode .more-btn {
   color: var(--text-dark);
 }
 
 .more-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(109, 109, 110, 0.9);
   transform: translateY(-2px);
 }
 
-/* Movie Sections */
-.movie-sections {
-  padding: 2rem 0;
-}
-
-/* Modal Styles */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(19, 17, 28, 0.9);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 2rem;
-  animation: fadeIn 0.3s ease;
-}
-
-.modal-content {
-  background: var(--background-light);
-  border-radius: 20px;
-  width: 100%;
-  max-width: 1000px;
+/* Movie Section */
+.movie-section {
+  padding: 60px 0;
   position: relative;
-  overflow: hidden;
-  animation: scaleIn 0.3s ease;
-}
-
-.modal-grid {
-  display: grid;
-  grid-template-columns: 300px 1fr;
-  gap: 2rem;
-}
-
-.modal-poster img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
-.modal-info {
-  padding: 2rem;
+.movie-section h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+  color: var(--text-light);
+  transition: color 0.3s ease;
+  padding: 0 4%;
 }
 
-.modal-close {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: none;
+.dark-mode .movie-section h2 {
   color: var(--text-dark);
-  font-size: 1.5rem;
+}
+
+.movie-slider {
+  position: relative;
+  width: 100%;
+  padding: 0 4%;
+}
+
+.movie-list {
+  display: flex;
+  gap: 1rem;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  padding: 1rem 0;
+  width: 100%;
+}
+
+.movie-card {
+  flex: 0 0 260px;
+  transition: transform 0.3s ease;
   cursor: pointer;
-  z-index: 1;
+}
+
+.movie-card:hover {
+  transform: scale(1.05);
+}
+
+.poster-wrapper {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
 
-.modal-close:hover {
-  transform: rotate(90deg);
-  color: var(--accent-color);
+.dark-mode .poster-wrapper {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.poster-wrapper img {
+  width: 100%;
+  height: 380px;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.movie-card:hover img {
+  transform: scale(1.1);
+}
+
+.movie-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9),
+    rgba(0, 0, 0, 0.7) 50%,
+    transparent
+  );
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.poster-wrapper:hover .movie-info {
+  transform: translateY(0);
+}
+
+.movie-info h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+  transition: color 0.3s ease;
+}
+
+.dark-mode .movie-info h3 {
+  color: var(--text-dark);
+}
+
+.movie-info p {
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.dark-mode .movie-info p {
+  color: #ffd700;
+}
+
+.heart-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  color: #ff3b7c;
+  filter: drop-shadow(0 0 8px rgba(255, 59, 124, 0.4));
+  transition: all 0.3s ease;
+}
+
+.heart-icon:hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 12px rgba(255, 59, 124, 0.6));
+}
+
+/* Slider Buttons */
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 100px;
+  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-light);
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.dark-mode .slider-btn {
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--text-dark);
+}
+
+.slider-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  width: 60px;
+}
+
+.dark-mode .slider-btn:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.slider-btn.prev {
+  left: 0;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.slider-btn.next {
+  right: 0;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.slider-btn i {
+  font-size: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.slider-btn:hover i {
+  transform: scale(1.2);
 }
 
 /* Animations */
 @keyframes rotation {
-  to { transform: rotate(360deg); }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-@keyframes pulse {
-  50% { opacity: 0.5; }
-}
-
-@keyframes slideUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-  .hero h1 {
-    font-size: 3.5rem;
-  }
-}
-
-@media (max-width: 768px) {
+/* Media Queries */
+@media (max-width: 1024px) {
   .hero h1 {
     font-size: 2.5rem;
   }
 
+  .movie-card {
+    flex: 0 0 220px;
+  }
+
+  .poster-wrapper img {
+    height: 330px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    height: 70vh;
+  }
+
   .hero-content {
-    text-align: center;
+    padding: 0 5%;
   }
 
-  .hero-buttons {
-    justify-content: center;
+  .hero h1 {
+    font-size: 2rem;
   }
 
-  .modal-grid {
-    grid-template-columns: 1fr;
+  .overview {
+    font-size: 1rem;
   }
 
-  .modal-poster {
-    height: 400px;
+  .btn {
+    padding: 0.7rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .movie-section {
+    padding: 40px 0;
+  }
+
+  .movie-section h2 {
+    padding: 0 5%;
+  }
+
+  .movie-slider {
+    padding: 0 5%;
+  }
+
+  .movie-card {
+    flex: 0 0 180px;
+  }
+
+  .poster-wrapper img {
+    height: 270px;
+  }
+
+  .slider-btn {
+    width: 40px;
+    height: 80px;
   }
 }
 
 @media (max-width: 480px) {
   .hero h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
 
-  .btn {
-    padding: 0.8rem 1.5rem;
+  .movie-card {
+    flex: 0 0 160px;
+  }
+
+  .poster-wrapper img {
+    height: 240px;
+  }
+
+  .movie-info h3 {
     font-size: 1rem;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 </style>

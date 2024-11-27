@@ -14,13 +14,12 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     logout() {
-      const router = useRouter();
       localStorage.removeItem('TMDb-Key');
       localStorage.removeItem('userId');
       localStorage.removeItem('isAuthenticated');
       this.isAuthenticated = false;
       this.userId = null;
-      router.push('/signin');
+      window.location.href = '/signin';
     }
   }
 });
