@@ -132,7 +132,10 @@ const handleSignUp = async () => {
       return
     }
 
-    // 2. 사용자 등록
+    // 2. API 키 유효성 검증
+    await tmdbApi.validateApiKey(loginForm.password)
+    
+    // 3. 사용자 등록
     users.push({
       username: signupForm.username,
       email: signupForm.email,
@@ -140,7 +143,7 @@ const handleSignUp = async () => {
     })
     saveUsers(users)
 
-    // 3. 자동 로그인 처리
+    // 4. 자동 로그인 처리
     localStorage.setItem('TMDb-Key', signupForm.password)
     localStorage.setItem('userId', signupForm.username)
     localStorage.setItem('isAuthenticated', 'true')

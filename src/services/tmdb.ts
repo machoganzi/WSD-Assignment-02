@@ -11,14 +11,29 @@ const apiClient = axios.create({
 
 export const tmdbApi = {
   // API 키 검증
-  validateApiKey: (apiKey: string) => 
-    axios.get<MovieResponse>(`${import.meta.env.VITE_TMDB_BASE_URL}/movie/popular`, {
-      params: {
-        api_key: apiKey,
-        language: 'ko-KR',
-        page: 1
+  validateApiKey: async (apiKey: string): Promise<boolean> => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_TMDB_BASE_URL}/movie/popular`, {
+        params: {
+          api_key: apiKey,
+          language: 'ko-KR',
+          page: 1
+        }
+      });
+      
+      // 요청이 성공했다면 유효한 API 키
+      if (response.status === 200) {
+        return true;  // 유효한 API 키
       }
-    }),
+
+      // 성공적인 응답이 아니면 실패
+      throw new Error('API 키가 유효하지 않습니다.');
+    } catch (error) {
+      // 요청이 실패한 경우 (유효하지 않은 API 키)
+      console.error('API 키 검증 실패:', error);
+      throw new Error('유효하지 않은 API 키입니다.');
+    }
+  },
 
   // 인기 영화 목록
   getPopularMovies: (page = 1) => 
