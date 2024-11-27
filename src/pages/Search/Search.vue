@@ -432,16 +432,6 @@
     return wishlisted.value.includes(movieId)
   }
   
-  const toggleWishlist = (movie: Movie) => {
-    const index = wishlisted.value.indexOf(movie.id)
-    if (index === -1) {
-      wishlisted.value.push(movie.id)
-    } else {
-      wishlisted.value.splice(index, 1)
-    }
-    localStorage.setItem('wishlisted', JSON.stringify(wishlisted.value))
-  }
-  
   // 장르 목록 로드
   const loadGenres = async () => {
     try {
