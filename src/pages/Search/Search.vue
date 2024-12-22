@@ -110,7 +110,7 @@
       </div>
  
       <div class="filter-actions">
-        <button class="reset-btn" @click="() => resetFilters()">
+        <button class="reset-btn" @click="resetFilters">
           <i class="fas fa-undo"></i> 초기화
         </button>
         <button class="apply-btn" @click="applyFilters">
@@ -159,7 +159,7 @@
       </div>
     </div>
  
-    <button :class="['scroll-top', { visible: showScrollTop }]" @click="scrollToTop">
+    <button v-show="showScrollTop" class="scroll-top" @click="scrollToTop">
       <i class="fas fa-arrow-up"></i>
     </button>
   </div>
@@ -972,7 +972,7 @@
     opacity: 0;
     visibility: hidden;
     transform: translateY(20px);
-    z-index: 3000;
+    z-index: 1000;
   }
   
   .scroll-top.visible {

@@ -68,8 +68,10 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import { tmdbApi } from '../../services/tmdb'
 
+const router = useRouter()
 const isSignUpMode = ref(false)
 
 const loginForm = reactive({
@@ -108,14 +110,14 @@ const handleSignIn = async () => {
     }
 
     // 2. API 키 유효성 검증
-    await tmdbApi.validateApiKey(loginForm.password)
+    await tmdbApi.getPopularMovies(1, loginForm.password)
     
     // 3. 로그인 처리
     localStorage.setItem('TMDb-Key', loginForm.password)
     localStorage.setItem('userId', loginForm.username)
     localStorage.setItem('isAuthenticated', 'true')
     
-    window.location.href = '/WSD-Assignment-02/'
+    window.location.href = '/'
   } catch (error) {
     alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
   }
@@ -130,9 +132,10 @@ const handleSignUp = async () => {
       return
     }
 
-
+    // 2. API 키 유효성 검증
+    await tmdbApi.getPopularMovies(1, signupForm.password)
     
-    // 2. 사용자 등록
+    // 3. 사용자 등록
     users.push({
       username: signupForm.username,
       email: signupForm.email,
@@ -140,13 +143,13 @@ const handleSignUp = async () => {
     })
     saveUsers(users)
 
-    // 3. 자동 로그인 처리
+    // 4. 자동 로그인 처리
     localStorage.setItem('TMDb-Key', signupForm.password)
     localStorage.setItem('userId', signupForm.username)
     localStorage.setItem('isAuthenticated', 'true')
     
     alert('회원가입이 완료되었습니다!')
-    window.location.href = '/WSD-Assignment-02/'
+    router.push('/')
   } catch (error) {
     alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
   }
@@ -420,69 +423,43 @@ const toggleMode = () => {
   transition-delay: 1.2s;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1024px) {
   .wrapper {
     width: 90%;
-    height: auto;
-    padding: 40px 20px;
+    height: 600px;
+  }
+  
+  .wrapper .form-box.login,
+  .wrapper .form-box.signup {
+    padding: 0 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .wrapper {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
   }
 
   .wrapper .form-box {
-    position: relative;
     width: 100%;
-    padding: 0;
-  }
-
-  .wrapper .form-box.login,
-  .wrapper .form-box.signup {
-    left: 0;
-    right: 0;
-    padding: 0;
-  }
-
-  .form-box h2 {
-    font-size: 24px;
-  }
-
-  .input-box {
-    margin: 20px 0;
-  }
-
-  .input-box input {
-    font-size: 14px;
-    padding: 0 15px 0 5px;
-  }
-
-  .btn {
-    height: 40px;
-    font-size: 14px;
-  }
-
-  .reg-link {
-    font-size: 12px;
+    padding: 0 20px;
   }
 
   .info-text {
-    position: relative;
-    width: 100%;
-    height: auto;
-    padding: 30px 20px;
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  .info-text h2 {
-    font-size: 24px;
-    margin-bottom: 5px;
-  }
-
-  .info-text p {
-    font-size: 14px;
+    display: none;
   }
 
   .bg-animate,
   .bg-animate2 {
     display: none;
+  }
+
+  .signin-container::before {
+    width: 100%;
+    height: 100%;
+    animation: none;
   }
 }
 </style>
