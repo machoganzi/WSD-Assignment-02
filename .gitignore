@@ -11,6 +11,14 @@ node_modules
 dist
 dist-ssr
 *.local
+# 기존에 node_modules 등의 설정이 이미 있을 것
+node_modules/
+dist/
+
+# 환경 변수 파일 무시
+.env
+.env-dev
+.env-prod
 
 # Editor directories and files
 .vscode/*
