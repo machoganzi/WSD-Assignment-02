@@ -30,12 +30,12 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory('/WSD-Assignment-02/'),
+  history: createWebHistory(),
   routes
 })
 
 // 로그인 체크 미들웨어
-router.beforeEach((to, _from, next) => {
+router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.getItem('TMDb-Key')
   if (to.name !== 'SignIn' && !isAuthenticated) {
     next({ name: 'SignIn' })

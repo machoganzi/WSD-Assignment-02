@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { useRouter } from 'vue-router';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -18,7 +19,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('isAuthenticated');
       this.isAuthenticated = false;
       this.userId = null;
-      window.location.href = '/WSD-Assignment-02/'
+      window.location.href = '/signin';
     }
   }
 });
