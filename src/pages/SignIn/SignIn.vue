@@ -226,7 +226,6 @@ const loginWithKakao = () => {
       console.log('카카오 로그인 성공, 토큰:', authObj.access_token)
       // 1) 로컬스토리지에 카카오 토큰 저장
       localStorage.setItem('kakao_token', authObj.access_token)
-      localStorage.setItem('isAuthenticated', 'true')
       const users = getUsers()
       
       
