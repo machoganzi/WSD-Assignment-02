@@ -2,8 +2,8 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
+// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // 환경변수 로드
   const env = loadEnv(mode, process.cwd(), '')
   
   return {
@@ -15,8 +15,14 @@ export default defineConfig(({ mode }) => {
       }
     },
     define: {
-      // 환경변수를 전역적으로 정의
-      'import.meta.env.VITE_KAKAO_API_KEY': JSON.stringify(env.VITE_KAKAO_API_KEY)
+      'import.meta.env': JSON.stringify({
+        ...env,
+        VITE_KAKAO_API_KEY: env.VITE_KAKAO_API_KEY,
+        VITE_TMDB_API_KEY: env.VITE_TMDB_API_KEY,
+        VITE_TMDB_BASE_URL: env.VITE_TMDB_BASE_URL,
+        VITE_TMDB_IMAGE_BASE_URL: env.VITE_TMDB_IMAGE_BASE_URL,
+        MODE: mode
+      })
     }
   }
 })
