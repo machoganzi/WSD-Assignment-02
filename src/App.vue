@@ -1,5 +1,6 @@
 <template>
   <div :class="['app', { 'dark-mode': themeStore.isDarkMode }]">
+    <!-- 로그인 페이지가 아닐 때만 헤더/푸터 표시 -->
     <Header v-if="!isSignInPage" />
     <main :class="{ 'no-margin': isSignInPage }">
       <router-view v-slot="{ Component }">
@@ -8,23 +9,41 @@
         </transition>
       </router-view>
     </main>
-    <Footer v-if="!isSignInPage" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { useThemeStore } from '@/stores/themeStore';
-import Header from './components/layout/Header.vue';
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useThemeStore } from './stores/themeStore'
+import Header from './components/layout/Header.vue'
 
-const route = useRoute();
-const themeStore = useThemeStore();
-const isSignInPage = computed(() => route.path === '/signin');
+
+const route = useRoute()
+const router = useRouter()
+const themeStore = useThemeStore()
+
+// 현재 경로가 /signin 인지 여부
+const isSignInPage = computed(() => route.path === '/signin')
 
 onMounted(() => {
-  themeStore.initTheme();
-});
+  // 1) 테마 초기화
+  themeStore.initTheme()
+
+  // 2) 카카오 로그인 토큰 체크
+  const token = localStorage.getItem('kakao_token')
+
+  // 예시) 로그인 토큰이 없는데 현재 페이지가 '/signin'이 아니라면 /signin 으로 이동
+  if (!token && route.path !== '/signin') {
+    router.push('/signin')
+  }
+
+  // 반대로, 로그인 토큰이 있는데도 불구하고 굳이 '/signin' 페이지에 온다면
+  // 이미 로그인 된 상태이므로 '/'로 보낼 수도 있음
+  // if (token && route.path === '/signin') {
+  //   router.push('/')
+  // }
+})
 </script>
 
 <style>

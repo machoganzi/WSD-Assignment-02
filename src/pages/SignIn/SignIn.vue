@@ -9,20 +9,42 @@
         <h2 class="animation" style="--data:0;">Login</h2>
         <form @submit.prevent="handleSignIn">
           <div class="input-box animation" style="--data:1;">
-            <input type="text" v-model="loginForm.username" required placeholder=" ">
+            <input
+              type="text"
+              v-model="loginForm.username"
+              required
+              placeholder=" "
+            />
             <label>Username</label>
             <i class="fas fa-user"></i>
           </div>
           <div class="input-box animation" style="--data:2;">
-            <input type="password" v-model="loginForm.password" required placeholder=" ">
+            <input
+              type="password"
+              v-model="loginForm.password"
+              required
+              placeholder=" "
+            />
             <label>Password</label>
             <i class="fas fa-lock"></i>
           </div>
-          <button type="submit" class="btn animation" style="--data:3;">Login</button>
+          <button type="submit" class="btn animation" style="--data:3;">
+            Login
+          </button>
           <div class="reg-link animation" style="--data:4;">
-            <p>Don't have an account? <a href="#" @click.prevent="toggleMode">Sign Up</a></p>
+            <p>
+              Don't have an account?
+              <a href="#" @click.prevent="toggleMode">Sign Up</a>
+            </p>
           </div>
         </form>
+
+        <!-- 카카오 로그인 버튼 (추가) -->
+        <div class="social-login-area animation" style="--data:5; margin-top: 10px;">
+          <button type="button" class="btn kakao-btn" @click="loginWithKakao">
+            카카오로 로그인
+          </button>
+        </div>
       </div>
 
       <!-- 회원가입 폼 -->
@@ -30,23 +52,43 @@
         <h2 class="animation">Sign Up</h2>
         <form @submit.prevent="handleSignUp">
           <div class="input-box animation" style="--data:17;">
-            <input type="text" v-model="signupForm.username" required placeholder=" ">
+            <input
+              type="text"
+              v-model="signupForm.username"
+              required
+              placeholder=" "
+            />
             <label>Username</label>
             <i class="fas fa-user"></i>
           </div>
           <div class="input-box animation" style="--data:18;">
-            <input type="email" v-model="signupForm.email" required placeholder=" ">
+            <input
+              type="email"
+              v-model="signupForm.email"
+              required
+              placeholder=" "
+            />
             <label>Email</label>
             <i class="fas fa-envelope"></i>
           </div>
           <div class="input-box animation" style="--data:19;">
-            <input type="password" v-model="signupForm.password" required placeholder=" ">
+            <input
+              type="password"
+              v-model="signupForm.password"
+              required
+              placeholder=" "
+            />
             <label>Password</label>
             <i class="fas fa-lock"></i>
           </div>
-          <button type="submit" class="btn animation" style="--data:20;">Sign Up</button>
+          <button type="submit" class="btn animation" style="--data:20;">
+            Sign Up
+          </button>
           <div class="reg-link animation" style="--data:21;">
-            <p>Already have an account? <a href="#" @click.prevent="toggleMode">Login</a></p>
+            <p>
+              Already have an account?
+              <a href="#" @click.prevent="toggleMode">Login</a>
+            </p>
           </div>
         </form>
       </div>
@@ -71,12 +113,23 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { tmdbApi } from '../../services/tmdb'
 
+
+// (TypeScript) 카카오 SDK 사용 시 window.Kakao를 인식시키기 위함
+declare global {
+  interface Window {
+    Kakao: any
+  }
+}
+
 const router = useRouter()
 const isSignUpMode = ref(false)
 
+/** ===============================
+ *   1) 기존 TMDB 로그인 로직
+ * =============================== */
 const loginForm = reactive({
   username: '',
-  password: '' // TMDB API 키
+  password: '' // TMDB API 키 (2차 과제 로직)
 })
 
 const signupForm = reactive({
@@ -85,23 +138,23 @@ const signupForm = reactive({
   password: '' // TMDB API 키
 })
 
-// 로컬스토리지에서 사용자 정보 관리
+// 로컬스토리지에서 사용자 목록 가져오기
 const getUsers = () => {
   const users = localStorage.getItem('users')
   return users ? JSON.parse(users) : []
 }
-
 const saveUsers = (users: any[]) => {
   localStorage.setItem('users', JSON.stringify(users))
 }
 
+// [기존] 로그인 핸들러 (TMDB 키)
 const handleSignIn = async () => {
   try {
-    // 1. 등록된 사용자인지 확인
+    // 1) 등록된 사용자인지 확인
     const users = getUsers()
-    const user = users.find((u: any) => 
-      u.username === loginForm.username && 
-      u.apiKey === loginForm.password
+    const user = users.find(
+      (u: any) =>
+        u.username === loginForm.username && u.apiKey === loginForm.password
     )
 
     if (!user) {
@@ -109,33 +162,35 @@ const handleSignIn = async () => {
       return
     }
 
-    // 2. API 키 유효성 검증
-    await tmdbApi.getPopularMovies(1, loginForm.password)
-    
-    // 3. 로그인 처리
+    // 2) TMDB API 키 유효성 검증
+    await tmdbApi.validateApiKey(loginForm.password)
+
+    // 3) 로그인 처리
     localStorage.setItem('TMDb-Key', loginForm.password)
     localStorage.setItem('userId', loginForm.username)
     localStorage.setItem('isAuthenticated', 'true')
-    
+
+    // 4) 메인페이지 이동
     window.location.href = '/'
   } catch (error) {
     alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
   }
 }
 
+// [기존] 회원가입 핸들러 (TMDB 키)
 const handleSignUp = async () => {
   try {
-    // 1. 이미 등록된 사용자인지 확인
+    // 1) 이미 등록된 사용자인지 확인
     const users = getUsers()
     if (users.some((u: any) => u.username === signupForm.username)) {
       alert('이미 등록된 사용자입니다.')
       return
     }
 
-    // 2. API 키 유효성 검증
-    await tmdbApi.getPopularMovies(1, signupForm.password)
-    
-    // 3. 사용자 등록
+    // 2) TMDB API 키 유효성 검증
+    await tmdbApi.validateApiKey(loginForm.password)
+
+    // 3) 사용자 등록
     users.push({
       username: signupForm.username,
       email: signupForm.email,
@@ -143,11 +198,11 @@ const handleSignUp = async () => {
     })
     saveUsers(users)
 
-    // 4. 자동 로그인 처리
+    // 4) 자동 로그인 처리
     localStorage.setItem('TMDb-Key', signupForm.password)
     localStorage.setItem('userId', signupForm.username)
     localStorage.setItem('isAuthenticated', 'true')
-    
+
     alert('회원가입이 완료되었습니다!')
     router.push('/')
   } catch (error) {
@@ -155,6 +210,65 @@ const handleSignUp = async () => {
   }
 }
 
+/** ===============================
+ *   2) 카카오 로그인 로직 (추가)
+ * =============================== */
+const loginWithKakao = () => {
+  const kakao = window.Kakao
+  if (!kakao) {
+    alert('카카오 SDK 로드 실패')
+    return
+  }
+
+  kakao.Auth.login({
+    scope: 'profile_nickname', // 필요한 권한
+    success: (authObj: any) => {
+      console.log('카카오 로그인 성공, 토큰:', authObj.access_token)
+      // 1) 로컬스토리지에 카카오 토큰 저장
+      localStorage.setItem('kakao_token', authObj.access_token)
+      localStorage.setItem('isAuthenticated', 'true')
+      const users = getUsers()
+      
+      
+      // 2) 사용자 정보 요청
+      kakao.API.request({
+        url: '/v2/user/me',
+        success: (res: any) => {
+          console.log('카카오 사용자 정보:', res)
+          // 닉네임 등 필요한 정보 저장
+          const nickname = res.kakao_account?.profile?.nickname ?? ''
+          localStorage.setItem('userId', nickname)
+          localStorage.setItem('isAuthenticated', 'true')
+          users.push({
+            username: nickname,
+            email: '',
+            apiKey: ''
+          })
+          saveUsers(users)
+          // 추가 정보 예: 프로필 이미지
+          console.log(
+            '카카오 프로필 이미지:',
+            res.kakao_account?.profile?.profile_image_url
+          )
+
+          // 3) 로그인 완료 후 메인으로 이동
+          window.location.href = '/'
+          
+        },
+        fail: (error: any) => {
+          console.error('카카오 사용자 정보 요청 실패:', error)
+          alert('카카오 사용자 정보 조회 실패')
+        }
+      })
+    },
+    fail: (err: any) => {
+      console.error('카카오 로그인 실패:', err)
+      alert('카카오 로그인 실패')
+    }
+  })
+}
+
+/** 모드 전환 (Login ↔ SignUp) */
 const toggleMode = () => {
   isSignUpMode.value = !isSignUpMode.value
 }
@@ -259,7 +373,7 @@ const toggleMode = () => {
   border-bottom: 2px solid #000;
   padding: 0 25px 0 5px;
   font-size: 16px;
-  color: #000000;  /* 하얀색 텍스트 */
+  color: #000000;
   z-index: 1;
 }
 
@@ -304,6 +418,18 @@ const toggleMode = () => {
 
 .btn:hover {
   background: #333;
+}
+
+/* 카카오 버튼 (예시) */
+.kakao-btn {
+  background-color: #fee500;
+  color: #3c1e1e;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+}
+
+.kakao-btn:hover {
+  filter: brightness(95%);
 }
 
 .reg-link {
@@ -428,7 +554,7 @@ const toggleMode = () => {
     width: 90%;
     height: 600px;
   }
-  
+
   .wrapper .form-box.login,
   .wrapper .form-box.signup {
     padding: 0 40px;
