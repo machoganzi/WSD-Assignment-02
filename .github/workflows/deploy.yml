@@ -2,9 +2,9 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ['main']  # main 브랜치에 push가 발생하면 실행
+    branches: ['main']
 
-  workflow_dispatch:  # 수동으로도 실행 가능하게 설정
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -33,6 +33,8 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          VITE_KAKAO_API_KEY: ${{ secrets.VITE_KAKAO_API_KEY }}  # 환경 변수 추가
         run: npm run build
 
       - name: Setup Pages
