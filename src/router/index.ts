@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
@@ -30,8 +30,8 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  // Hash 기반 라우팅 사용
-  history: createWebHashHistory(),
+  // GitHub Pages의 base URL을 고려한 history 설정
+  history: createWebHistory('/WSD-Assignment-02/'),
   routes
 })
 
