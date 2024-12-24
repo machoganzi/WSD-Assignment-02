@@ -98,6 +98,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
+
 import { useThemeStore } from '../../stores/themeStore';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -545,6 +546,12 @@ onUnmounted(() => {
 }
 
 /* Accessibility */
+
+
+
+
+
+
 @media (prefers-reduced-motion: reduce) {
  * {
    animation-duration: 0.01ms !important;
