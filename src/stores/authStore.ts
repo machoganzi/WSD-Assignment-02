@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('kakao_token');
       this.isAuthenticated = false;
       this.userId = null;
-      window.location.href = './signin'
+      window.location.href = './'
     }
   }
 });
