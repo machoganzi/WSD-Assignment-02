@@ -37,11 +37,15 @@ const router = createRouter({
 
 // 로그인 체크 미들웨어
 router.beforeEach((to, _from, next) => {
-  const isAuthenticated = localStorage.getItem('TMDb-Key')
-  if (to.name !== 'SignIn' && !isAuthenticated) {
-    next({ name: 'SignIn' })
+  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const kakaoToken = localStorage.getItem('kakao_token');
+  const tmdbKey = localStorage.getItem('TMDb-Key');
+
+  // SignIn 페이지가 아니고, 인증되지 않은 경우 로그인 페이지로
+  if (to.name !== 'SignIn' && (!isAuthenticated || (!kakaoToken && !tmdbKey))) {
+    next({ name: 'SignIn' });
   } else {
-    next()
+    next();
   }
 })
 
