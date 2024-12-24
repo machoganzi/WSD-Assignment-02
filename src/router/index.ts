@@ -37,9 +37,8 @@ const router = createRouter({
 
 // 로그인 체크 미들웨어
 router.beforeEach((to, _from, next) => {
-  const kakaoToken = localStorage.getItem('kakao_token')
-
-  if (to.name !== 'SignIn' && !kakaoToken) {
+  const isAuthenticated = localStorage.getItem('TMDb-Key')
+  if (to.name !== 'SignIn' && !isAuthenticated) {
     next({ name: 'SignIn' })
   } else {
     next()
