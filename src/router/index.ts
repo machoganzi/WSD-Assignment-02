@@ -36,7 +36,7 @@ const router = createRouter({
 
 // 로그인 체크 미들웨어
 // router/index.ts
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, _from, next) => {
   // 카카오 로그인 성공 시 localStorage에 저장했던 토큰
   const kakaoToken = localStorage.getItem('kakao_token')
 
