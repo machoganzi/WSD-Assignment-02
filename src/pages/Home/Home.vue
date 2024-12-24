@@ -55,8 +55,8 @@
                   <h3>{{ movie.title }}</h3>
                   <p>⭐ {{ movie.vote_average.toFixed(1) }}</p>
                   <i class="fas heart-icon"
-                     :class="movieStore.isWishlisted(movie.id) ? 'fa-heart' : 'fa-heart-o'"
-                     :aria-label="movieStore.isWishlisted(movie.id) ? '찜하기 취소' : '찜하기'"
+                      :class="movieStore.isWishlisted(movie.id) ? 'fa-heart' : 'fa-heart-o'"
+                      :aria-label="movieStore.isWishlisted(movie.id) ? '찜하기 취소' : '찜하기'"
                   ></i>
                 </div>
               </div>
@@ -107,8 +107,8 @@
                   <h3>{{ movie.title }}</h3>
                   <p>⭐ {{ movie.vote_average.toFixed(1) }}</p>
                   <i class="fas heart-icon"
-                     :class="movieStore.isWishlisted(movie.id) ? 'fa-heart' : 'fa-heart-o'"
-                     :aria-label="movieStore.isWishlisted(movie.id) ? '찜하기 취소' : '찜하기'"
+                      :class="movieStore.isWishlisted(movie.id) ? 'fa-heart' : 'fa-heart-o'"
+                      :aria-label="movieStore.isWishlisted(movie.id) ? '찜하기 취소' : '찜하기'"
                   ></i>
                 </div>
               </div>
@@ -130,9 +130,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
-import { useThemeStore } from '@/stores/themeStore';
-import { useMovieStore } from '@/stores/movieStore';
-import { tmdbApi } from '@/services/tmdb';
+import { useThemeStore } from '../../stores/themeStore';
+import { useMovieStore } from '../../stores/movieStore';
+import { tmdbApi } from '../../services/tmdb';
 import { debounce } from 'lodash';
 
 const themeStore = useThemeStore();
@@ -175,13 +175,13 @@ const heroStyle = computed(() => {
 
 // Image URL Helper
 const getImageUrl = (path: string | null) => {
+  if (!path) return ''; // null인 경우 빈 문자열 반환
   return tmdbApi.getImageUrl(path, 'w500');
 };
 
 // 슬라이더 위치 계산
 const getSliderPosition = (type: 'popular' | 'nowPlaying') => {
   const state = sliderStates[type];
-  const movies = type === 'popular' ? movieStore.popularMovies : movieStore.nowPlayingMovies;
   const cardWidth = 260; // Fixed card width
   const gap = 16; // Gap between cards
 

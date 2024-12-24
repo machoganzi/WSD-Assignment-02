@@ -28,7 +28,7 @@
           class="movie-card"
         >
           <div class="poster-wrapper">
-            <img :src="getImageUrl(movie.poster_path)" :alt="movie.title">
+            <img :src="getImageUrl(movie.poster_path ?? null)" :alt="movie.title">
             <div class="movie-info">
               <h3>{{ movie.title }}</h3>
               <div class="movie-details">
@@ -124,9 +124,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { tmdbApi } from '@/services/tmdb'
-import { useThemeStore } from '@/stores/themeStore'
-import type { Movie } from '@/types/tmdb'
+import { tmdbApi } from '../../services/tmdb'
+import { useThemeStore } from '../../stores/themeStore'
+import type { Movie } from '../../types/tmdb'
 
 const themeStore = useThemeStore()
 const viewMode = ref<'grid' | 'table'>('grid')
@@ -246,11 +246,6 @@ const handleScroll = async () => {
   }
 }
 
-// 스크롤 탑 버튼 표시/숨김
-const updateScrollTopVisibility = (container: HTMLElement) => {
- showScrollTop.value = container.scrollTop > 200
-}
-
 // 맨 위로 스크롤
 const scrollToTop = () => {
  const container = viewMode.value === 'table' ? tableContainer.value : window
@@ -342,7 +337,7 @@ watch(viewMode, () => {
   margin-right: calc(-50vw + 50%);
   padding: 20px max(4%, calc((100vw - 1920px) / 2));
   background: var(--background-light);
-  color: var(--text-dark);
+  color: var(--text-light);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
