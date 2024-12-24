@@ -35,13 +35,18 @@ const router = createRouter({
 })
 
 // 로그인 체크 미들웨어
+// router/index.ts
 router.beforeEach((to, from, next) => {
-  const isAuthenticated = localStorage.getItem('TMDb-Key')
-  if (to.name !== 'SignIn' && !isAuthenticated) {
+  // 카카오 로그인 성공 시 localStorage에 저장했던 토큰
+  const kakaoToken = localStorage.getItem('kakao_token')
+
+  // 로그인 페이지(SingIn)로 가려는 게 아니라면 && 토큰이 없다면 → SignIn으로
+  if (to.name !== 'SignIn' && !kakaoToken) {
     next({ name: 'SignIn' })
   } else {
     next()
   }
 })
+
 
 export default router
