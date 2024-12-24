@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
-  base: '/',
+  base: '/WSD-Assignment-02/',
   plugins: [vue()],
   resolve: {
     alias: {
