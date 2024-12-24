@@ -30,23 +30,20 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  // GitHub Pages의 base URL을 고려한 history 설정
+  history: createWebHistory('/WSD-Assignment-02/'),
   routes
 })
 
 // 로그인 체크 미들웨어
-// router/index.ts
 router.beforeEach((to, _from, next) => {
-  // 카카오 로그인 성공 시 localStorage에 저장했던 토큰
   const kakaoToken = localStorage.getItem('kakao_token')
 
-  // 로그인 페이지(SingIn)로 가려는 게 아니라면 && 토큰이 없다면 → SignIn으로
   if (to.name !== 'SignIn' && !kakaoToken) {
     next({ name: 'SignIn' })
   } else {
     next()
   }
 })
-
 
 export default router
