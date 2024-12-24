@@ -4,21 +4,23 @@ import App from './App.vue'
 import router from './router'
 import './style.css'
 
-// 카카오 SDK 초기화 코드
-const kakaoKey = import.meta.env.VITE_KAKAO_API_KEY
-console.log('Kakao Key:', kakaoKey) // API KEY 값 확인용
-
-// SDK 초기화 시도
-if (window.Kakao && !window.Kakao.isInitialized()) {
-  try {
-    window.Kakao.init(kakaoKey)
-    console.log('Kakao SDK 초기화 성공')
-  } catch (error) {
-    console.error('Kakao SDK 초기화 실패:', error)
+// Kakao SDK 초기화 함수
+function initKakao() {
+  const kakaoKey = import.meta.env.VITE_KAKAO_API_KEY
+  if (!kakaoKey) {
+    console.warn('KAKAO_API_KEY가 설정되지 않았습니다.')
+    return
   }
-} else {
-  console.warn('Kakao SDK가 로드되지 않았거나 이미 초기화되었습니다.')
+
+  // Kakao SDK 로드 확인 및 초기화
+  if (window.Kakao && !window.Kakao.isInitialized()) {
+    window.Kakao.init(kakaoKey)
+    console.log('Kakao SDK init 완료')
+  }
 }
+
+// DOM이 로드된 후 Kakao SDK 초기화
+window.addEventListener('load', initKakao)
 
 const app = createApp(App)
 app.use(createPinia())

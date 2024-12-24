@@ -32,7 +32,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # 환경변수 설정 추가
+      - name: Create env file
+        run: |
+          echo "VITE_KAKAO_API_KEY=${{ secrets.VITE_KAKAO_API_KEY }}" > .env
+
       - name: Build
+        env:
+          VITE_KAKAO_API_KEY: ${{ secrets.VITE_KAKAO_API_KEY }}
         run: npm run build
 
       - name: Setup Pages
