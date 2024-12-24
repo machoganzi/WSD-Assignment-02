@@ -204,7 +204,7 @@ const handleSignUp = async () => {
     localStorage.setItem('isAuthenticated', 'true')
 
     alert('회원가입이 완료되었습니다!')
-    router.push('/WSD-Assignment-02/')
+    router.push('/')
   } catch (error) {
     alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
   }
