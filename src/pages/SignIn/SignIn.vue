@@ -171,7 +171,7 @@ const handleSignIn = async () => {
     localStorage.setItem('isAuthenticated', 'true')
 
     // 4) 메인페이지 이동
-    window.location.href = '/'
+    window.location.href = '/WSD-Assignment-02/'
   } catch (error) {
     alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
   }
@@ -204,7 +204,7 @@ const handleSignUp = async () => {
     localStorage.setItem('isAuthenticated', 'true')
 
     alert('회원가입이 완료되었습니다!')
-    router.push('/')
+    router.push('/WSD-Assignment-02/')
   } catch (error) {
     alert('잘못된 API 키입니다. TMDB API 키를 확인해주세요.')
   }
@@ -252,7 +252,7 @@ const loginWithKakao = () => {
           )
 
           // 3) 로그인 완료 후 메인으로 이동
-          window.location.href = '/'
+          window.location.href = '/WSD-Assignment-02/'
           
         },
         fail: (error: any) => {
