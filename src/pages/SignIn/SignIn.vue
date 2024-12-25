@@ -219,7 +219,10 @@ const loginWithKakao = () => {
     alert('카카오 SDK 로드 실패')
     return
   }
-
+  if (!navigator.onLine) {
+    alert('인터넷 연결을 확인해주세요')
+    return
+  }
   kakao.Auth.login({
     scope: 'profile_nickname', // 필요한 권한
     success: (authObj: any) => {
@@ -244,12 +247,12 @@ const loginWithKakao = () => {
             apiKey: ''
           })
           saveUsers(users)
-          // 추가 정보 예: 프로필 이미지
+          // 추가 정보 예: 프로필 이미지 콘솔 출력
           console.log(
             '카카오 프로필 이미지:',
             res.kakao_account?.profile?.profile_image_url
           )
-
+          
           // 3) 로그인 완료 후 메인으로 이동
           window.location.href = './'
           
