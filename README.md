@@ -31,7 +31,7 @@ npm run preview
 
 ## 프로젝트 링크
 
-- GitHub Repository: https://github.com/[username]/WSD-Assignment-02
+- GitHub Repository: https://github.com/machoganzi/WSD-Assignment-02
 - 배포 URL: https://[username].github.io/WSD-Assignment-02/
 
 ## 주요 기능

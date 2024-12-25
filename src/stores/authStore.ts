@@ -1,9 +1,11 @@
 import { defineStore } from 'pinia';
+import { useRouter } from 'vue-router';
 interface AuthState {
   isAuthenticated: boolean;
   userId: string | null;
 }
 
+const router = useRouter()
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     isAuthenticated: localStorage.getItem('isAuthenticated') === 'true',
@@ -18,6 +20,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('kakao_token');
       this.isAuthenticated = false;
       this.userId = null;
+      router.push('/')
       window.location.reload();
     }
   }
