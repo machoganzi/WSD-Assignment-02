@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('kakao_token');
       this.isAuthenticated = false;
       this.userId = null;
-      router.push('/')
+      router.push('./')
       window.location.reload();
     }
   }
